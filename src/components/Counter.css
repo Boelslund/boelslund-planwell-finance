@@ -1,0 +1,21 @@
+.counter {
+  padding: 2rem;
+  border: 2px solid #646cff;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.counter h2 {
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.button-group button {
+  min-width: 120px;
+}
