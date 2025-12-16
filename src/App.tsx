@@ -5,7 +5,7 @@ function App() {
   return (
     <>
       <div>
-        <h1>Planwell Finance</h1>
+        <h1>Boelslund PlanWell Finance</h1>
         <p>A modern financial planning application built with React, Firebase, and TDD</p>
       </div>
       <Counter />

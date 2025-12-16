@@ -1,17 +1,124 @@
-import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
-import { getAnalytics } from 'firebase/analytics'
+import { initializeApp, type FirebaseApp } from 'firebase/app'
+import { getAuth, type Auth } from 'firebase/auth'
+import { getFirestore, type Firestore } from 'firebase/firestore'
+import { getAnalytics, type Analytics } from 'firebase/analytics'
 import { firebaseConfig } from './config/firebase.config'
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig)
+// Cached instances
+let appInstance: FirebaseApp | null = null
+let authInstance: Auth | null = null
+let dbInstance: Firestore | null = null
+let analyticsInstance: Analytics | null = null
 
-// Initialize Firebase services
-export const auth = getAuth(app)
-export const db = getFirestore(app)
+/**
+ * Checks if the current environment is suitable for Firebase initialization
+ * @returns true if Firebase can be initialized, false otherwise
+ */
+function isFirebaseEnvironment(): boolean {
+  // Don't initialize in test environment
+  if (import.meta.env.MODE === 'test') {
+    return false
+  }
+  
+  // Don't initialize in SSR context (no window object)
+  if (typeof window === 'undefined') {
+    return false
+  }
+  
+  return true
+}
 
-// Initialize Analytics (only in production)
-export const analytics = typeof window !== 'undefined' && import.meta.env.PROD 
-  ? getAnalytics(app) 
-  : null
+/**
+ * Lazily initializes and returns the Firebase app instance
+ * @returns Firebase app instance
+ * @throws Error if Firebase cannot be initialized in the current environment
+ */
+export function getApp(): FirebaseApp {
+  if (!isFirebaseEnvironment()) {
+    throw new Error(
+      'Firebase cannot be initialized in the current environment (test or SSR context)'
+    )
+  }
+  
+  if (!appInstance) {
+    appInstance = initializeApp(firebaseConfig)
+  }
+  
+  return appInstance
+}
+
+/**
+ * Lazily initializes and returns the Firebase Auth instance
+ * @returns Firebase Auth instance
+ */
+export function getAuthInstance(): Auth {
+  if (!authInstance) {
+    authInstance = getAuth(getApp())
+  }
+  return authInstance
+}
+
+/**
+ * Lazily initializes and returns the Firestore instance
+ * @returns Firestore instance
+ */
+export function getDbInstance(): Firestore {
+  if (!dbInstance) {
+    dbInstance = getFirestore(getApp())
+  }
+  return dbInstance
+}
+
+/**
+ * Lazily initializes and returns the Analytics instance (production only)
+ * @returns Analytics instance or null if not in production or if measurementId is missing
+ */
+export function getAnalyticsInstance(): Analytics | null {
+  // Don't initialize if not in production or not in browser environment
+  if (!import.meta.env.PROD || !isFirebaseEnvironment()) {
+    return null
+  }
+  
+  // Don't initialize if measurementId is not provided
+  if (!import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) {
+    console.warn('Firebase Analytics not initialized: VITE_FIREBASE_MEASUREMENT_ID is not set')
+    return null
+  }
+  
+  if (!analyticsInstance) {
+    try {
+      analyticsInstance = getAnalytics(getApp())
+    } catch (error) {
+      console.error('Failed to initialize Firebase Analytics:', error)
+      return null
+    }
+  }
+  
+  return analyticsInstance
+}
+
+// Legacy exports for backward compatibility
+// These will throw in test environments, encouraging use of the getter functions
+export const app = new Proxy({} as FirebaseApp, {
+  get() {
+    return getApp()
+  }
+})
+
+export const auth = new Proxy({} as Auth, {
+  get(_target, prop) {
+    return getAuthInstance()[prop as keyof Auth]
+  }
+})
+
+export const db = new Proxy({} as Firestore, {
+  get(_target, prop) {
+    return getDbInstance()[prop as keyof Firestore]
+  }
+})
+
+export const analytics = new Proxy({} as Analytics, {
+  get() {
+    return getAnalyticsInstance()
+  }
+})

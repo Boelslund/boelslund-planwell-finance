@@ -1,4 +1,4 @@
-# Planwell Finance
+# Boelslund PlanWell Finance
 
 A financial tool to eliminate inconsistent spending. Calculates and stabilizes the required monthly savings amount to cover all your variable annual bills with one fixed, predictable set-aside.
 
@@ -32,7 +32,9 @@ Visit [http://localhost:5173](http://localhost:5173)
 npm run dev          # Start dev server
 npm run build        # Build for production
 npm run preview      # Preview production build
-npm run test         # Run tests in watch mode
+npm test             # Run tests in watch mode
+npm run test:run     # Run tests once
+npm run test:ci      # Run tests with coverage (CI)
 npm run test:ui      # Run tests with UI
 npm run test:coverage # Run tests with coverage
 npm run lint         # Run ESLint
@@ -52,11 +54,22 @@ src/
 ## Development Roadmap
 
 See [NEXT_STEPS.md](./NEXT_STEPS.md) for the feature development plan:
+
 - Expense input & management
 - Budget calculation engine
 - Visual representations
 - User accounts & persistence
 - Current progress & next tasks
+
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](./docs/) folder:
+
+- **[Environment Setup](./docs/ENVIRONMENT_SETUP.md)** - Complete setup guide
+- **[Contributing](./docs/CONTRIBUTING.md)** - Development workflow
+- **[Testing](./docs/TESTING.md)** - Testing guide and TDD practices
+- **[Architecture](./docs/ARCHITECTURE.md)** - Technical architecture overview
+- **[Firebase](./docs/firebase-lazy-init.md)** - Firebase integration details
 
 ## License
 
