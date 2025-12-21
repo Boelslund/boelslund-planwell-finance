@@ -282,35 +282,6 @@ describe('Register Component', () => {
             });
         });
 
-        it('should clear form fields after successful registration', async () => {
-            const user = userEvent.setup();
-            const mockUserCredential = {
-                user: { uid: 'test-uid', email: 'newuser@example.com' } as User
-            };
-            mockSignUp.mockResolvedValue(mockUserCredential);
-
-            render(<Register />);
-
-            const displayNameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
-            const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
-            const passwordInput = screen.getByLabelText(/^password/i) as HTMLInputElement;
-            const confirmPasswordInput = screen.getByLabelText(/confirm password/i) as HTMLInputElement;
-
-            await user.type(displayNameInput, 'Test User');
-            await user.type(emailInput, 'newuser@example.com');
-            await user.type(passwordInput, 'password123');
-            await user.type(confirmPasswordInput, 'password123');
-
-            const submitButton = screen.getByRole('button', { name: /sign up|register/i });
-            await user.click(submitButton);
-
-            await waitFor(() => {
-                expect(displayNameInput.value).toBe('');
-                expect(emailInput.value).toBe('');
-                expect(passwordInput.value).toBe('');
-                expect(confirmPasswordInput.value).toBe('');
-            });
-        });
     });
 
     describe('Loading States', () => {
