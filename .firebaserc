@@ -1,0 +1,22 @@
+{
+  "projects": {
+    "default": "boelslund-planwell-finance",
+    "test": "boelslund-planwell-finance-dev"
+  },
+  "targets": {
+    "boelslund-planwell-finance": {
+      "hosting": {
+        "production": [
+          "boelslund-planwell-finance"
+        ]
+      }
+    },
+    "boelslund-planwell-finance-dev": {
+      "hosting": {
+        "test": [
+          "boelslund-planwell-finance-dev"
+        ]
+      }
+    }
+  }
+}
