@@ -1,14 +1,19 @@
 {
   "projects": {
-    "default": "boelslund-planwell-finance"
+    "default": "boelslund-planwell-finance",
+    "test": "boelslund-planwell-finance-dev"
   },
   "targets": {
     "boelslund-planwell-finance": {
       "hosting": {
         "production": [
           "boelslund-planwell-finance"
-        ],
-        "beta": [
+        ]
+      }
+    },
+    "boelslund-planwell-finance-dev": {
+      "hosting": {
+        "test": [
           "boelslund-planwell-finance-dev"
         ]
       }

@@ -1,4 +1,4 @@
-name: Deploy to Beta
+name: Deploy to Test Environment
 
 on:
   push:
@@ -55,7 +55,7 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID: ${{ vars.VITE_FIREBASE_MEASUREMENT_ID }}
 
-      - name: Deploy to Firebase Hosting (dev)
+      - name: Deploy to Firebase Hosting (test)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
