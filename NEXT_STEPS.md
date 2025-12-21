@@ -35,18 +35,28 @@ Enable users to calculate:
 
 ### 1.3 User Session Management
 
-- [ ] Persist authentication state
-- [ ] Auto-login on page refresh
-- [ ] Logout functionality
+- [x] Persist authentication state (Firebase handles this automatically)
+- [x] Auto-login on page refresh (via onAuthStateChanged)
+- [x] Logout functionality (signOut implemented in AuthContext)
 - [ ] Password reset flow (email link)
 - [ ] Email verification (optional for MVP)
 
 ### 1.4 User Profile
 
-- [ ] Basic user profile in Firestore (`users/{userId}`)
-- [ ] Store: email, displayName, createdAt
-- [ ] Create default budget on first login
+- [x] Basic user profile in Firestore (`users/{userId}`)
+- [x] Store: email, displayName, createdAt
+- [x] Integrate profile creation into registration flow
+- [ ] Create default budget on first login (moved to Phase 2)
 - [ ] User settings/preferences structure
+
+### 1.5 App Layout & Navigation (after auth complete)
+
+- [ ] Create app layout structure with header/navigation
+- [ ] Create Header/TopBar component with user info
+  - [ ] Display user email/name
+  - [ ] Profile picture placeholder/avatar
+  - [ ] User menu dropdown with logout button
+  - [ ] Redirect to login page after logout
 
 ---
 

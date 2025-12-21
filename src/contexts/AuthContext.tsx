@@ -5,14 +5,15 @@ import {
     User,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signOut as firebaseSignOut
+    signOut as firebaseSignOut,
+    UserCredential
 } from 'firebase/auth';
 
 interface AuthContextType {
     user: User | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
-    signUp: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string) => Promise<UserCredential>;
     signOut: () => Promise<void>;
 }
 
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const signUp = async (email: string, password: string) => {
-        await createUserWithEmailAndPassword(getAuthInstance(), email, password);
+        return await createUserWithEmailAndPassword(getAuthInstance(), email, password);
     };
 
     const signOut = async () => {

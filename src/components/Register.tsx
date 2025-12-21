@@ -1,32 +1,40 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { createUserProfile } from "../services/userProfile";
 
 export function Register() {
+    const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [errors, setErrors] = useState({ email: "", password: "", confirmPassword: "" });
+    const [errors, setErrors] = useState({ displayName: "", email: "", password: "", confirmPassword: "" });
     const [loading, setLoading] = useState(false);
     const [authError, setAuthError] = useState("");
 
     const { user, signUp } = useAuth();
     const navigate = useNavigate();
 
-    if (user) {
-        navigate("/");
-        return null;
-    }
+    useEffect(() => {
+        if (user) {
+            navigate("/");
+        }
+    }, [user, navigate]);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
         // Reset errors
-        setErrors({ email: "", password: "", confirmPassword: "" });
+        setErrors({ displayName: "", email: "", password: "", confirmPassword: "" });
         setAuthError("");
 
         // Validate
         let hasErrors = false;
+        if (!displayName.trim()) {
+            setErrors((prev) => ({ ...prev, displayName: "Name is required" }));
+            hasErrors = true;
+        }
+
         if (!email) {
             setErrors((prev) => ({ ...prev, email: "Email is required" }));
             hasErrors = true;
@@ -51,25 +59,36 @@ export function Register() {
 
         if (hasErrors) return;
 
-        // Attempt sign in
+        // Attempt sign up
         setLoading(true);
         try {
-            await signUp(email, password);
+            const userCredential = await signUp(email, password);
+            const newUser = userCredential.user;
+
+            // Create user profile in Firestore
+            // If this fails, we should not proceed as it would leave user in inconsistent state
+            await createUserProfile(newUser.uid, newUser.email || email, displayName.trim());
+
             // Clear form on success
+            setDisplayName("");
             setEmail("");
             setPassword("");
             setConfirmPassword("");
-            // Optionally navigate to another page or show success message
+            // Navigate to home page
             navigate("/");
         } catch (error: unknown) {
             // Handle Firebase auth errors
             const errorCode = (error as { code?: string })?.code || "";
+            const errorMessage = (error as { message?: string })?.message || "";
+
             if (errorCode === "auth/email-already-in-use") {
                 setAuthError("Email already in use");
             } else if (errorCode === "auth/weak-password") {
                 setAuthError("Weak password. Please use a stronger password.");
             } else if (errorCode === "auth/invalid-email") {
                 setAuthError("Invalid email address");
+            } else if (errorMessage.includes('Missing or insufficient permissions')) {
+                setAuthError("Database configuration error. Please contact support.");
             } else {
                 setAuthError("Failed to create an account. Please try again.");
             }
@@ -83,6 +102,15 @@ export function Register() {
             <title>Sign Up</title>
             <h1>Sign Up</h1>
             <form onSubmit={handleSubmit}>
+                <label htmlFor="displayName">Name</label>
+                <input
+                    id="displayName"
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                />
+                {errors.displayName && <div style={{ color: 'red' }}>{errors.displayName}</div>}
+
                 <label htmlFor="email">Email</label>
                 <input
                     id="email"

@@ -3,12 +3,18 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Register } from './Register';
 import { useAuth } from '../contexts/AuthContext';
+import { createUserProfile } from '../services/userProfile';
 import type { User } from 'firebase/auth';
 import { ReactNode } from 'react';
 
 // Mock the useAuth hook
 vi.mock('../contexts/AuthContext', () => ({
     useAuth: vi.fn(),
+}));
+
+// Mock userProfile service
+vi.mock('../services/userProfile', () => ({
+    createUserProfile: vi.fn(),
 }));
 
 // Mock react-router-dom
@@ -22,6 +28,7 @@ vi.mock('react-router-dom', () => ({
 
 describe('Register Component', () => {
     const mockSignUp = vi.fn();
+    const mockCreateUserProfile = vi.mocked(createUserProfile);
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -38,6 +45,7 @@ describe('Register Component', () => {
         it('should render registration form with all required fields', () => {
             render(<Register />);
 
+            expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
@@ -77,6 +85,19 @@ describe('Register Component', () => {
     });
 
     describe('Form Validation', () => {
+        it('should show error when submitting with empty name', async () => {
+            const user = userEvent.setup();
+            render(<Register />);
+
+            const submitButton = screen.getByRole('button', { name: /sign up|register/i });
+            await user.click(submitButton);
+
+            await waitFor(() => {
+                expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+            });
+            expect(mockSignUp).not.toHaveBeenCalled();
+        });
+
         it('should show error when submitting with empty email', async () => {
             const user = userEvent.setup();
             render(<Register />);
@@ -181,14 +202,19 @@ describe('Register Component', () => {
     describe('Form Submission', () => {
         it('should call signUp with correct credentials', async () => {
             const user = userEvent.setup();
-            mockSignUp.mockResolvedValue(undefined);
+            const mockUserCredential = {
+                user: { uid: 'test-uid', email: 'newuser@example.com' } as User
+            };
+            mockSignUp.mockResolvedValue(mockUserCredential);
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'newuser@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -201,16 +227,49 @@ describe('Register Component', () => {
             });
         });
 
-        it('should navigate to home page after successful registration', async () => {
+        it('should create user profile after successful registration', async () => {
             const user = userEvent.setup();
-            mockSignUp.mockResolvedValue(undefined);
+            const { createUserProfile } = await import('../services/userProfile');
+            const mockUserCredential = {
+                user: { uid: 'test-uid-123', email: 'newuser@example.com' } as User
+            };
+            mockSignUp.mockResolvedValue(mockUserCredential);
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
+            await user.type(emailInput, 'newuser@example.com');
+            await user.type(passwordInput, 'password123');
+            await user.type(confirmPasswordInput, 'password123');
+
+            const submitButton = screen.getByRole('button', { name: /sign up|register/i });
+            await user.click(submitButton);
+
+            await waitFor(() => {
+                expect(createUserProfile).toHaveBeenCalledWith('test-uid-123', 'newuser@example.com', 'Test User');
+            });
+        });
+
+        it('should navigate to home page after successful registration', async () => {
+            const user = userEvent.setup();
+            const mockUserCredential = {
+                user: { uid: 'test-uid', email: 'newuser@example.com' } as User
+            };
+            mockSignUp.mockResolvedValue(mockUserCredential);
+
+            render(<Register />);
+
+            const displayNameInput = screen.getByLabelText(/name/i);
+            const emailInput = screen.getByLabelText(/email/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
+            const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'newuser@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -225,14 +284,19 @@ describe('Register Component', () => {
 
         it('should clear form fields after successful registration', async () => {
             const user = userEvent.setup();
-            mockSignUp.mockResolvedValue(undefined);
+            const mockUserCredential = {
+                user: { uid: 'test-uid', email: 'newuser@example.com' } as User
+            };
+            mockSignUp.mockResolvedValue(mockUserCredential);
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
             const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
             const passwordInput = screen.getByLabelText(/^password/i) as HTMLInputElement;
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i) as HTMLInputElement;
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'newuser@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -241,6 +305,7 @@ describe('Register Component', () => {
             await user.click(submitButton);
 
             await waitFor(() => {
+                expect(displayNameInput.value).toBe('');
                 expect(emailInput.value).toBe('');
                 expect(passwordInput.value).toBe('');
                 expect(confirmPasswordInput.value).toBe('');
@@ -251,18 +316,20 @@ describe('Register Component', () => {
     describe('Loading States', () => {
         it('should show loading state during sign up', async () => {
             const user = userEvent.setup();
-            let resolveSignUp: () => void;
-            const signUpPromise = new Promise<void>((resolve) => {
+            let resolveSignUp: (value: { user: User }) => void;
+            const signUpPromise = new Promise<{ user: User }>((resolve) => {
                 resolveSignUp = resolve;
             });
             mockSignUp.mockReturnValue(signUpPromise);
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'newuser@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -272,23 +339,27 @@ describe('Register Component', () => {
 
             expect(screen.getByText(/loading|creating account|signing up/i)).toBeInTheDocument();
 
-            resolveSignUp!();
+            resolveSignUp!({
+                user: { uid: 'test-uid', email: 'newuser@example.com' } as User
+            });
         });
 
         it('should disable submit button during loading', async () => {
             const user = userEvent.setup();
-            let resolveSignUp: () => void;
-            const signUpPromise = new Promise<void>((resolve) => {
+            let resolveSignUp: (value: { user: User }) => void;
+            const signUpPromise = new Promise<{ user: User }>((resolve) => {
                 resolveSignUp = resolve;
             });
             mockSignUp.mockReturnValue(signUpPromise);
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'newuser@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -298,7 +369,9 @@ describe('Register Component', () => {
 
             expect(submitButton).toBeDisabled();
 
-            resolveSignUp!();
+            resolveSignUp!({
+                user: { uid: 'test-uid', email: 'newuser@example.com' } as User
+            });
         });
     });
 
@@ -312,10 +385,12 @@ describe('Register Component', () => {
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'existing@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -337,10 +412,12 @@ describe('Register Component', () => {
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'newuser@example.com');
             await user.type(passwordInput, 'weakpass');
             await user.type(confirmPasswordInput, 'weakpass');
@@ -362,10 +439,12 @@ describe('Register Component', () => {
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'invalid@email');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -387,10 +466,12 @@ describe('Register Component', () => {
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'newuser@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -403,6 +484,40 @@ describe('Register Component', () => {
             });
         });
 
+        it('should fail registration if profile creation fails', async () => {
+            const user = userEvent.setup();
+            const mockUserCredential = {
+                user: { uid: 'test-uid-123', email: 'newuser@example.com' } as User
+            };
+            mockSignUp.mockResolvedValue(mockUserCredential);
+            mockCreateUserProfile.mockRejectedValue({
+                code: 'permission-denied',
+                message: 'Missing or insufficient permissions',
+            });
+
+            render(<Register />);
+
+            const displayNameInput = screen.getByLabelText(/name/i);
+            const emailInput = screen.getByLabelText(/email/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
+            const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+
+            await user.type(displayNameInput, 'Test User');
+            await user.type(emailInput, 'newuser@example.com');
+            await user.type(passwordInput, 'password123');
+            await user.type(confirmPasswordInput, 'password123');
+
+            const submitButton = screen.getByRole('button', { name: /sign up|register/i });
+            await user.click(submitButton);
+
+            await waitFor(() => {
+                expect(screen.getByText(/database configuration error|contact support/i)).toBeInTheDocument();
+            });
+
+            // Verify navigation did NOT happen
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
         it('should clear previous error when user retries', async () => {
             const user = userEvent.setup();
             mockSignUp.mockRejectedValueOnce({
@@ -412,10 +527,12 @@ describe('Register Component', () => {
 
             render(<Register />);
 
+            const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
+            await user.type(displayNameInput, 'Test User');
             await user.type(emailInput, 'existing@example.com');
             await user.type(passwordInput, 'password123');
             await user.type(confirmPasswordInput, 'password123');
@@ -427,7 +544,10 @@ describe('Register Component', () => {
                 expect(screen.getByText(/email already in use|account already exists/i)).toBeInTheDocument();
             });
 
-            mockSignUp.mockResolvedValue(undefined);
+            const mockUserCredential = {
+                user: { uid: 'test-uid', email: 'newuser@example.com' } as User
+            };
+            mockSignUp.mockResolvedValue(mockUserCredential);
 
             await user.clear(emailInput);
             await user.type(emailInput, 'newuser@example.com');
@@ -460,3 +580,4 @@ describe('Register Component', () => {
         });
     });
 });
+

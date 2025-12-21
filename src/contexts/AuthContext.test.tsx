@@ -132,6 +132,74 @@ describe('AuthContext', () => {
 
             expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument();
         });
+
+        it('should call signInWithEmailAndPassword when signIn is called', async () => {
+            const { signInWithEmailAndPassword } = await import('firebase/auth');
+            const user = (await import('@testing-library/user-event')).default.setup();
+
+            render(
+                <AuthProvider>
+                    <TestComponent />
+                </AuthProvider>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+            });
+
+            const signInButton = screen.getByRole('button', { name: /sign in/i });
+            await user.click(signInButton);
+
+            expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+                expect.anything(),
+                'test@example.com',
+                'password123'
+            );
+        });
+
+        it('should call createUserWithEmailAndPassword when signUp is called', async () => {
+            const { createUserWithEmailAndPassword } = await import('firebase/auth');
+            const user = (await import('@testing-library/user-event')).default.setup();
+
+            render(
+                <AuthProvider>
+                    <TestComponent />
+                </AuthProvider>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+            });
+
+            const signUpButton = screen.getByRole('button', { name: /sign up/i });
+            await user.click(signUpButton);
+
+            expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(
+                expect.anything(),
+                'new@example.com',
+                'password123'
+            );
+        });
+
+        it('should call Firebase signOut when signOut is called', async () => {
+            const { signOut: firebaseSignOut } = await import('firebase/auth');
+            const user = (await import('@testing-library/user-event')).default.setup();
+
+            render(
+                <AuthProvider>
+                    <TestComponent />
+                </AuthProvider>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+            });
+
+            const signOutButton = screen.getByRole('button', { name: /sign out/i });
+            await user.click(signOutButton);
+
+            expect(firebaseSignOut).toHaveBeenCalledWith(expect.anything());
+        });
     });
 
     describe('Authentication State', () => {
