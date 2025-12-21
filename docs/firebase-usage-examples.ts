@@ -1,6 +1,6 @@
 /**
  * Firebase Usage Examples
- * 
+ *
  * This file demonstrates how to use the lazy-initialized Firebase services
  * in different contexts.
  */
@@ -9,59 +9,48 @@
 // RECOMMENDED: Use getter functions for explicit lazy initialization
 // ============================================================================
 
-import { getApp, getAuthInstance, getDbInstance, getAnalyticsInstance } from './firebase'
+import {
+  getApp,
+  getAuthInstance,
+  getDbInstance,
+  getAnalyticsInstance,
+} from '../src/firebase';
 
 // Example 1: Initialize only when needed
 export function setupAuthentication() {
   try {
-    const auth = getAuthInstance()
+    const auth = getAuthInstance();
     // Use auth service...
-    console.log('Auth initialized:', auth)
+    console.log('Auth initialized:', auth);
   } catch (error) {
-    console.error('Failed to initialize auth:', error)
+    console.error('Failed to initialize auth:', error);
   }
 }
 
 // Example 2: Initialize Firestore only when database operations are needed
 export async function fetchUserData(userId: string) {
   try {
-    const db = getDbInstance()
+    const db = getDbInstance();
     // Use db service...
-    console.log('Database initialized for user:', userId, db)
+    console.log('Database initialized for user:', userId, db);
   } catch (error) {
-    console.error('Failed to initialize database:', error)
+    console.error('Failed to initialize database:', error);
   }
 }
 
 // Example 3: Analytics (production only, requires measurementId)
 export function trackPageView(pageName: string) {
-  const analytics = getAnalyticsInstance()
+  const analytics = getAnalyticsInstance();
   if (analytics) {
     // Track event with analytics
-    console.log('Tracking page view:', pageName)
+    console.log('Tracking page view:', pageName);
   } else {
     // Analytics is not available in:
     // - Development mode
     // - Test environment
     // - When VITE_FIREBASE_MEASUREMENT_ID is not set
     // - SSR contexts
-    console.log('Analytics not available')
-  }
-}
-
-// ============================================================================
-// LEGACY: Backward-compatible exports (still works but may error in tests)
-// ============================================================================
-
-import { auth, db, app } from './firebase'
-
-// These will work in browser environments but throw errors in test environments
-export function legacyAuthExample() {
-  try {
-    // This works but will fail in test environment
-    console.log('Current user:', auth.currentUser)
-  } catch (error) {
-    console.error('Legacy auth access failed:', error)
+    console.log('Analytics not available');
   }
 }
 
@@ -71,10 +60,10 @@ export function legacyAuthExample() {
 
 /**
  * In test files, you can mock the getter functions:
- * 
+ *
  * import { vi } from 'vitest'
- * import * as firebase from './firebase'
- * 
+ * import * as firebase from '../firebase'
+ *
  * vi.spyOn(firebase, 'getAuthInstance').mockReturnValue({
  *   currentUser: { uid: 'test-user-123' }
  * } as any)

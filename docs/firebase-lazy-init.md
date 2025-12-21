@@ -13,28 +13,32 @@ The Firebase services in this project now use **lazy initialization** to prevent
 
 ## Usage
 
-### Recommended: Use Getter Functions
+### Using Getter Functions
 
-The recommended approach is to use the getter functions for explicit control:
+Use the getter functions for explicit control over Firebase initialization:
 
 ```typescript
-import { getAuthInstance, getDbInstance, getAnalyticsInstance } from './firebase'
+import {
+  getAuthInstance,
+  getDbInstance,
+  getAnalyticsInstance,
+} from "./firebase";
 
 // Initialize auth only when needed
 function login() {
-  const auth = getAuthInstance()
+  const auth = getAuthInstance();
   // Use auth...
 }
 
 // Initialize Firestore only when needed
 async function saveData() {
-  const db = getDbInstance()
+  const db = getDbInstance();
   // Use db...
 }
 
 // Analytics (returns null in development)
 function trackEvent() {
-  const analytics = getAnalyticsInstance()
+  const analytics = getAnalyticsInstance();
   if (analytics) {
     // Track with analytics
   } else {
@@ -42,19 +46,6 @@ function trackEvent() {
   }
 }
 ```
-
-### Legacy: Direct Exports (Backward Compatible)
-
-The legacy exports still work but use proxies under the hood:
-
-```typescript
-import { auth, db, analytics } from './firebase'
-
-// These work in browser environments
-console.log(auth.currentUser)
-```
-
-**Note**: Legacy exports will throw errors in test environments to encourage using the getter functions.
 
 ## Environment Detection
 
@@ -78,18 +69,18 @@ If any condition fails, `getAnalyticsInstance()` returns `null` gracefully.
 In your tests, mock the getter functions:
 
 ```typescript
-import { vi } from 'vitest'
-import * as firebase from './firebase'
+import { vi } from "vitest";
+import * as firebase from "../src/firebase";
 
 // Mock auth
-vi.spyOn(firebase, 'getAuthInstance').mockReturnValue({
-  currentUser: { uid: 'test-user' }
-} as any)
+vi.spyOn(firebase, "getAuthInstance").mockReturnValue({
+  currentUser: { uid: "test-user" },
+} as any);
 
 // Mock Firestore
-vi.spyOn(firebase, 'getDbInstance').mockReturnValue({
-  collection: vi.fn()
-} as any)
+vi.spyOn(firebase, "getDbInstance").mockReturnValue({
+  collection: vi.fn(),
+} as any);
 ```
 
 ## Error Handling
@@ -98,29 +89,12 @@ Always wrap Firebase calls in try-catch blocks:
 
 ```typescript
 try {
-  const auth = getAuthInstance()
+  const auth = getAuthInstance();
   // Use auth...
 } catch (error) {
-  console.error('Firebase initialization failed:', error)
+  console.error("Firebase initialization failed:", error);
   // Handle gracefully
 }
-```
-
-## Migration Guide
-
-If you're using the old direct exports, no changes are required. However, for better test compatibility, consider migrating to getter functions:
-
-**Before:**
-```typescript
-import { auth } from './firebase'
-auth.signInWithEmailAndPassword(email, password)
-```
-
-**After:**
-```typescript
-import { getAuthInstance } from './firebase'
-const auth = getAuthInstance()
-auth.signInWithEmailAndPassword(email, password)
 ```
 
 ## See Also

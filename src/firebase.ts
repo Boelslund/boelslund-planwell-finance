@@ -1,14 +1,14 @@
-import { initializeApp, type FirebaseApp } from 'firebase/app'
-import { getAuth, type Auth } from 'firebase/auth'
-import { getFirestore, type Firestore } from 'firebase/firestore'
-import { getAnalytics, type Analytics } from 'firebase/analytics'
-import { firebaseConfig } from './config/firebase.config'
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAnalytics, type Analytics } from 'firebase/analytics';
+import { firebaseConfig } from './config/firebase.config';
 
 // Cached instances
-let appInstance: FirebaseApp | null = null
-let authInstance: Auth | null = null
-let dbInstance: Firestore | null = null
-let analyticsInstance: Analytics | null = null
+let appInstance: FirebaseApp | null = null;
+let authInstance: Auth | null = null;
+let dbInstance: Firestore | null = null;
+let analyticsInstance: Analytics | null = null;
 
 /**
  * Checks if the current environment is suitable for Firebase initialization
@@ -17,15 +17,15 @@ let analyticsInstance: Analytics | null = null
 function isFirebaseEnvironment(): boolean {
   // Don't initialize in test environment
   if (import.meta.env.MODE === 'test') {
-    return false
+    return false;
   }
-  
+
   // Don't initialize in SSR context (no window object)
   if (typeof window === 'undefined') {
-    return false
+    return false;
   }
-  
-  return true
+
+  return true;
 }
 
 /**
@@ -37,14 +37,14 @@ export function getApp(): FirebaseApp {
   if (!isFirebaseEnvironment()) {
     throw new Error(
       'Firebase cannot be initialized in the current environment (test or SSR context)'
-    )
+    );
   }
-  
+
   if (!appInstance) {
-    appInstance = initializeApp(firebaseConfig)
+    appInstance = initializeApp(firebaseConfig);
   }
-  
-  return appInstance
+
+  return appInstance;
 }
 
 /**
@@ -53,9 +53,9 @@ export function getApp(): FirebaseApp {
  */
 export function getAuthInstance(): Auth {
   if (!authInstance) {
-    authInstance = getAuth(getApp())
+    authInstance = getAuth(getApp());
   }
-  return authInstance
+  return authInstance;
 }
 
 /**
@@ -64,9 +64,9 @@ export function getAuthInstance(): Auth {
  */
 export function getDbInstance(): Firestore {
   if (!dbInstance) {
-    dbInstance = getFirestore(getApp())
+    dbInstance = getFirestore(getApp());
   }
-  return dbInstance
+  return dbInstance;
 }
 
 /**
@@ -76,50 +76,25 @@ export function getDbInstance(): Firestore {
 export function getAnalyticsInstance(): Analytics | null {
   // Don't initialize if not in production or not in browser environment
   if (!import.meta.env.PROD || !isFirebaseEnvironment()) {
-    return null
+    return null;
   }
-  
+
   // Don't initialize if measurementId is not provided
   if (!import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) {
-    console.warn('Firebase Analytics not initialized: VITE_FIREBASE_MEASUREMENT_ID is not set')
-    return null
+    console.warn(
+      'Firebase Analytics not initialized: VITE_FIREBASE_MEASUREMENT_ID is not set'
+    );
+    return null;
   }
-  
+
   if (!analyticsInstance) {
     try {
-      analyticsInstance = getAnalytics(getApp())
+      analyticsInstance = getAnalytics(getApp());
     } catch (error) {
-      console.error('Failed to initialize Firebase Analytics:', error)
-      return null
+      console.error('Failed to initialize Firebase Analytics:', error);
+      return null;
     }
   }
-  
-  return analyticsInstance
+
+  return analyticsInstance;
 }
-
-// Legacy exports for backward compatibility
-// These will throw in test environments, encouraging use of the getter functions
-export const app = new Proxy({} as FirebaseApp, {
-  get(_target, prop) {
-    return getApp()[prop as keyof FirebaseApp]
-  }
-})
-
-export const auth = new Proxy({} as Auth, {
-  get(_target, prop) {
-    return getAuthInstance()[prop as keyof Auth]
-  }
-})
-
-export const db = new Proxy({} as Firestore, {
-  get(_target, prop) {
-    return getDbInstance()[prop as keyof Firestore]
-  }
-})
-
-export const analytics = new Proxy({} as Analytics, {
-  get(_target, prop) {
-    const instance = getAnalyticsInstance()
-    return instance ? instance[prop as keyof Analytics] : null
-  }
-})

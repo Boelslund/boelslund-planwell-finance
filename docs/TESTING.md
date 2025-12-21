@@ -82,56 +82,56 @@ src/
 ### Basic Test Template
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { ComponentName } from './ComponentName'
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { ComponentName } from "./ComponentName";
 
-describe('ComponentName', () => {
-  it('should render correctly', () => {
-    render(<ComponentName />)
-    expect(screen.getByText('Expected Text')).toBeInTheDocument()
-  })
-})
+describe("ComponentName", () => {
+  it("should render correctly", () => {
+    render(<ComponentName />);
+    expect(screen.getByText("Expected Text")).toBeInTheDocument();
+  });
+});
 ```
 
 ### Testing User Interactions
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { ComponentName } from './ComponentName'
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { ComponentName } from "./ComponentName";
 
-describe('ComponentName', () => {
-  it('should handle button click', async () => {
-    const user = userEvent.setup()
-    render(<ComponentName />)
-    
-    const button = screen.getByRole('button', { name: /click me/i })
-    await user.click(button)
-    
-    expect(screen.getByText('Clicked!')).toBeInTheDocument()
-  })
-})
+describe("ComponentName", () => {
+  it("should handle button click", async () => {
+    const user = userEvent.setup();
+    render(<ComponentName />);
+
+    const button = screen.getByRole("button", { name: /click me/i });
+    await user.click(button);
+
+    expect(screen.getByText("Clicked!")).toBeInTheDocument();
+  });
+});
 ```
 
 ### Testing Async Operations
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { ComponentName } from './ComponentName'
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { ComponentName } from "./ComponentName";
 
-describe('ComponentName', () => {
-  it('should load data', async () => {
-    render(<ComponentName />)
-    
+describe("ComponentName", () => {
+  it("should load data", async () => {
+    render(<ComponentName />);
+
     // Wait for async operation to complete
     await waitFor(() => {
-      expect(screen.getByText('Data loaded')).toBeInTheDocument()
-    })
-  })
-})
+      expect(screen.getByText("Data loaded")).toBeInTheDocument();
+    });
+  });
+});
 ```
 
 ### Mocking Firebase
@@ -139,18 +139,18 @@ describe('ComponentName', () => {
 When testing components that use Firebase:
 
 ```typescript
-import { vi } from 'vitest'
-import * as firebase from './firebase'
+import { vi } from "vitest";
+import * as firebase from "../src/firebase";
 
 // Mock Firebase services
-vi.spyOn(firebase, 'getAuthInstance').mockReturnValue({
-  currentUser: { uid: 'test-user', email: 'test@example.com' }
-} as any)
+vi.spyOn(firebase, "getAuthInstance").mockReturnValue({
+  currentUser: { uid: "test-user", email: "test@example.com" },
+} as any);
 
-vi.spyOn(firebase, 'getDbInstance').mockReturnValue({
+vi.spyOn(firebase, "getDbInstance").mockReturnValue({
   collection: vi.fn(),
-  doc: vi.fn()
-} as any)
+  doc: vi.fn(),
+} as any);
 ```
 
 ## TDD Workflow
@@ -158,17 +158,19 @@ vi.spyOn(firebase, 'getDbInstance').mockReturnValue({
 ### Red-Green-Refactor Cycle
 
 1. **Red**: Write a failing test first
+
    ```typescript
-   it('should display user name', () => {
-     render(<UserProfile name="John" />)
-     expect(screen.getByText('John')).toBeInTheDocument()
-   })
+   it("should display user name", () => {
+     render(<UserProfile name="John" />);
+     expect(screen.getByText("John")).toBeInTheDocument();
+   });
    ```
 
 2. **Green**: Write minimal code to make it pass
+
    ```typescript
    function UserProfile({ name }: { name: string }) {
-     return <div>{name}</div>
+     return <div>{name}</div>;
    }
    ```
 
@@ -179,7 +181,7 @@ vi.spyOn(firebase, 'getDbInstance').mockReturnValue({
        <div className="user-profile">
          <h2>{name}</h2>
        </div>
-     )
+     );
    }
    ```
 
@@ -197,53 +199,53 @@ vi.spyOn(firebase, 'getDbInstance').mockReturnValue({
 ### Testing Forms
 
 ```typescript
-it('should submit form with user input', async () => {
-  const user = userEvent.setup()
-  const onSubmit = vi.fn()
-  
-  render(<MyForm onSubmit={onSubmit} />)
-  
+it("should submit form with user input", async () => {
+  const user = userEvent.setup();
+  const onSubmit = vi.fn();
+
+  render(<MyForm onSubmit={onSubmit} />);
+
   // Fill in form
-  await user.type(screen.getByLabelText(/name/i), 'John Doe')
-  await user.type(screen.getByLabelText(/email/i), 'john@example.com')
-  
+  await user.type(screen.getByLabelText(/name/i), "John Doe");
+  await user.type(screen.getByLabelText(/email/i), "john@example.com");
+
   // Submit
-  await user.click(screen.getByRole('button', { name: /submit/i }))
-  
+  await user.click(screen.getByRole("button", { name: /submit/i }));
+
   // Verify
   expect(onSubmit).toHaveBeenCalledWith({
-    name: 'John Doe',
-    email: 'john@example.com'
-  })
-})
+    name: "John Doe",
+    email: "john@example.com",
+  });
+});
 ```
 
 ### Testing Conditional Rendering
 
 ```typescript
-it('should show error message when validation fails', () => {
-  render(<MyForm error="Invalid input" />)
-  expect(screen.getByText('Invalid input')).toBeInTheDocument()
-})
+it("should show error message when validation fails", () => {
+  render(<MyForm error="Invalid input" />);
+  expect(screen.getByText("Invalid input")).toBeInTheDocument();
+});
 
-it('should not show error when valid', () => {
-  render(<MyForm />)
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-})
+it("should not show error when valid", () => {
+  render(<MyForm />);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
 ```
 
 ### Testing Loading States
 
 ```typescript
-it('should show loading spinner while fetching', () => {
-  render(<DataComponent isLoading={true} />)
-  expect(screen.getByRole('status')).toBeInTheDocument()
-})
+it("should show loading spinner while fetching", () => {
+  render(<DataComponent isLoading={true} />);
+  expect(screen.getByRole("status")).toBeInTheDocument();
+});
 
-it('should show data when loaded', () => {
-  render(<DataComponent isLoading={false} data={mockData} />)
-  expect(screen.getByText('Data content')).toBeInTheDocument()
-})
+it("should show data when loaded", () => {
+  render(<DataComponent isLoading={false} data={mockData} />);
+  expect(screen.getByText("Data content")).toBeInTheDocument();
+});
 ```
 
 ## Query Priority
@@ -251,28 +253,32 @@ it('should show data when loaded', () => {
 Use queries in this order of preference:
 
 1. **`getByRole`** - Most accessible, preferred method
+
    ```typescript
-   screen.getByRole('button', { name: /submit/i })
+   screen.getByRole("button", { name: /submit/i });
    ```
 
 2. **`getByLabelText`** - Good for form fields
+
    ```typescript
-   screen.getByLabelText(/email/i)
+   screen.getByLabelText(/email/i);
    ```
 
 3. **`getByPlaceholderText`** - For inputs with placeholders
+
    ```typescript
-   screen.getByPlaceholderText(/enter email/i)
+   screen.getByPlaceholderText(/enter email/i);
    ```
 
 4. **`getByText`** - For non-interactive elements
+
    ```typescript
-   screen.getByText(/welcome/i)
+   screen.getByText(/welcome/i);
    ```
 
 5. **`getByTestId`** - Last resort only
    ```typescript
-   screen.getByTestId('custom-element')
+   screen.getByTestId("custom-element");
    ```
 
 ## Debugging Tests
@@ -280,25 +286,26 @@ Use queries in this order of preference:
 ### View Rendered Output
 
 ```typescript
-import { render, screen } from '@testing-library/react'
+import { render, screen } from "@testing-library/react";
 
-const { debug } = render(<MyComponent />)
-debug() // Prints the DOM tree
+const { debug } = render(<MyComponent />);
+debug(); // Prints the DOM tree
 
 // Or debug a specific element
-screen.debug(screen.getByRole('button'))
+screen.debug(screen.getByRole("button"));
 ```
 
 ### Check Available Queries
 
 ```typescript
-screen.logTestingPlaygroundURL()
+screen.logTestingPlaygroundURL();
 // Opens a URL with suggestions for better queries
 ```
 
 ### Vitest UI
 
 Run `npm run test:ui` and use the browser interface to:
+
 - See test results in real-time
 - Inspect component snapshots
 - View console logs
@@ -311,18 +318,18 @@ Test configuration is in `vite.config.ts`:
 ```typescript
 export default defineConfig({
   test: {
-    globals: true,           // Use global test functions
-    environment: 'jsdom',    // Simulate browser environment
-    setupFiles: './src/test/setup.ts',  // Setup file
-    css: true,               // Process CSS imports
+    globals: true, // Use global test functions
+    environment: "jsdom", // Simulate browser environment
+    setupFiles: "./src/test/setup.ts", // Setup file
+    css: true, // Process CSS imports
   },
-})
+});
 ```
 
 Setup file at `src/test/setup.ts`:
 
 ```typescript
-import '@testing-library/jest-dom'  // Custom matchers
+import "@testing-library/jest-dom"; // Custom matchers
 ```
 
 ## Continuous Integration
