@@ -27,7 +27,7 @@ Enable users to calculate:
 ### 1.2 Registration & Login UI
 
 - [x] Create `Login` component (TDD)
-- [ ] Create `Register` component (TDD)
+- [x] Create `Register` component (TDD)
 - [ ] Email/password authentication (implement signIn/signUp/signOut in AuthContext)
 - [x] Form validation (email format, password strength)
 - [x] Error handling (user already exists, wrong password, etc.)
@@ -288,6 +288,12 @@ Enable users to calculate:
 - [ ] Currency selection
 - [ ] Date format preferences
 - [ ] Theme (light/dark mode)
+
+### 9.4 Enhanced Authentication UX
+
+- [ ] Password strength meter (visual indicator: weak/medium/strong)
+- [ ] Remember me option
+- [ ] Social login (Google, GitHub)
 
 ---
 
