@@ -15,8 +15,8 @@ export function ProtectedRoute({ children, redirectTo = "/login" }: ProtectedRou
     }
 
     if (!user) {
-        return <Navigate to={redirectTo} />
+        return <Navigate to={redirectTo} />;
     }
 
-    return <>{children}</>
+    return <>{children}</>;
 }

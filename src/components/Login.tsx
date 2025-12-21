@@ -68,7 +68,6 @@ export function Login() {
 
     return (
         <div>
-            <title>Log In</title>
             <h1>Log In</h1>
             <form onSubmit={handleSubmit}>
                 <label htmlFor="email">Email</label>
@@ -77,6 +76,7 @@ export function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                 />
                 {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
 
@@ -86,6 +86,7 @@ export function Login() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                 />
                 {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
 
@@ -98,4 +99,4 @@ export function Login() {
             <Link to="/register">Don't have an account? Sign Up</Link>
         </div>
     );
-}
+};

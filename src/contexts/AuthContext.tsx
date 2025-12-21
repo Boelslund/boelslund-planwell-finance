@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const unsubscribe = onAuthStateChanged(getAuthInstance(), (user) => {
             setUser(user);
             setLoading(false);
-        })
+        });
         return unsubscribe;
     }, []);
 
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         signUp
-    }
+    };
 
     return (
         <AuthContext.Provider value={value}>
@@ -66,5 +66,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         </AuthContext.Provider >
     );
 }
-
-export default AuthContext

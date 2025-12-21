@@ -66,8 +66,19 @@ export function Register() {
             const newUser = userCredential.user;
 
             // Create user profile in Firestore
-            // If this fails, we should not proceed as it would leave user in inconsistent state
-            await createUserProfile(newUser.uid, newUser.email || email, displayName.trim());
+            // If this fails, rollback by deleting the user account to avoid inconsistent state
+            try {
+                await createUserProfile(newUser.uid, newUser.email || email, displayName.trim());
+            } catch (profileError) {
+                // Profile creation failed - rollback user account creation
+                try {
+                    await newUser.delete();
+                } catch (deleteError) {
+                    console.error("Failed to rollback user creation:", deleteError);
+                }
+                // Re-throw the profile error to be handled by outer catch
+                throw profileError;
+            }
 
             // Clear form on success
             setDisplayName("");
@@ -95,11 +106,10 @@ export function Register() {
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     return (
         <div>
-            <title>Sign Up</title>
             <h1>Sign Up</h1>
             <form onSubmit={handleSubmit}>
                 <label htmlFor="displayName">Name</label>
@@ -108,6 +118,7 @@ export function Register() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
+                    autoComplete="name"
                 />
                 {errors.displayName && <div style={{ color: 'red' }}>{errors.displayName}</div>}
 
@@ -117,6 +128,7 @@ export function Register() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                 />
                 {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
 
@@ -126,6 +138,7 @@ export function Register() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
                 />
                 {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
 
@@ -135,6 +148,7 @@ export function Register() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
                 />
                 {errors.confirmPassword && <div style={{ color: 'red' }}>{errors.confirmPassword}</div>}
 
@@ -146,5 +160,5 @@ export function Register() {
             </form>
             <Link to="/login">Already have an account? Log In</Link>
         </div>
-    )
+    );
 }
