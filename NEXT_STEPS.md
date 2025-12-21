@@ -28,7 +28,7 @@ Enable users to calculate:
 
 - [x] Create `Login` component (TDD)
 - [x] Create `Register` component (TDD)
-- [ ] Email/password authentication (implement signIn/signUp/signOut in AuthContext)
+- [x] Email/password authentication (implement signIn/signUp/signOut in AuthContext)
 - [x] Form validation (email format, password strength)
 - [x] Error handling (user already exists, wrong password, etc.)
 - [x] Loading states

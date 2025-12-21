@@ -142,3 +142,4 @@ vite.config.ts.timestamp-*
 # testing files
 coverage/
 test-results.*
+test-accounts.txt

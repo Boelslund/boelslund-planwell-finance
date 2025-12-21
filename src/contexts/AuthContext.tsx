@@ -1,13 +1,19 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { getAuthInstance } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import {
+    onAuthStateChanged,
+    User,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut as firebaseSignOut
+} from 'firebase/auth';
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
+    user: User | null;
+    loading: boolean;
+    signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string) => Promise<void>;
+    signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -34,15 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const signIn = async (email: string, password: string) => {
-        // TODO: Implement sign in
+        await signInWithEmailAndPassword(getAuthInstance(), email, password);
     };
-    
+
     const signUp = async (email: string, password: string) => {
-        // TODO: Implement sign up
+        await createUserWithEmailAndPassword(getAuthInstance(), email, password);
     };
-    
+
     const signOut = async () => {
-        // TODO: Implement sign out
+        await firebaseSignOut(getAuthInstance());
     };
 
     const value = {
