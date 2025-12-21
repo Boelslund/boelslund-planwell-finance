@@ -16,8 +16,8 @@ Enable users to calculate:
 ## Phase 1: Authentication & User Setup
 
 ### 1.1 Firebase Authentication
-- [ ] Configure Firebase Auth in project
-- [ ] Create authentication context/provider
+- [x] Configure Firebase Auth in project
+- [x] Create authentication context/provider
 - [ ] Protected route wrapper component
 
 ### 1.2 Registration & Login UI
