@@ -10,6 +10,11 @@ A financial tool to eliminate inconsistent spending. Calculates and stabilizes t
 - **Vitest** + **React Testing Library** - Test-driven development
 - **GitHub Actions** - CI/CD pipeline
 
+## Prerequisites
+
+- **Node.js** >= 20.0.0 (required by react-router-dom v7.11.0)
+- **npm** or **yarn** package manager
+
 ## Quick Start
 
 ```bash

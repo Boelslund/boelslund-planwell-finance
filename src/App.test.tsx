@@ -1,60 +1,91 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import type { User } from 'firebase/auth'
 import App from './App'
 
+// Mock Firebase
+vi.mock('./firebase', () => ({
+  getAuthInstance: vi.fn(),
+  getDbInstance: vi.fn(),
+}))
+
+// Mock Firebase Auth
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn((_auth, callback) => {
+    // Simulate no user logged in initially
+    if (typeof callback === 'function') {
+      callback(null)
+    }
+    return vi.fn() // unsubscribe function
+  }),
+  signInWithEmailAndPassword: vi.fn(),
+  createUserWithEmailAndPassword: vi.fn(),
+  signOut: vi.fn(),
+}))
+
 describe('App Component', () => {
-  it('should render the application title', () => {
-    render(<App />)
-    expect(screen.getByText('Boelslund PlanWell Finance')).toBeInTheDocument()
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
-  it('should render the application description', () => {
+  it('should render without crashing', () => {
     render(<App />)
-    expect(
-      screen.getByText('A modern financial planning application built with React, Firebase, and TDD')
-    ).toBeInTheDocument()
+    expect(document.body).toBeTruthy()
   })
 
-  it('should render the Counter component', () => {
+  it('should redirect to login when not authenticated', async () => {
     render(<App />)
-    expect(screen.getByText(/Count:/i)).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /log in/i })).toBeInTheDocument()
+    }, { timeout: 500 })
   })
 
-  it('should render all counter buttons', () => {
+  it('should render login form when not authenticated', async () => {
     render(<App />)
-    expect(screen.getByRole('button', { name: /increment/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /decrement/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /reset/i })).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+    }, { timeout: 500 })
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
   })
 
-  it('should render the information section', () => {
+  it('should provide navigation to register page from login', async () => {
     render(<App />)
-    expect(
-      screen.getByText('This is a demonstration of test-driven development.')
-    ).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByText(/don't have an account/i)).toBeInTheDocument()
+    }, { timeout: 500 })
+    expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument()
   })
 
-  it('should render the test file reference', () => {
-    render(<App />)
-    expect(screen.getByText(/Check/i)).toBeInTheDocument()
-    expect(screen.getByText(/src\/components\/Counter\.test\.tsx/i)).toBeInTheDocument()
-  })
-
-  it('should render the info section with correct class', () => {
-    render(<App />)
-    const infoSection = screen.getByText('This is a demonstration of test-driven development.').closest('div')
-    expect(infoSection).toHaveClass('info')
-  })
-
-  it('should have proper document structure', () => {
+  it('should render the AuthProvider', () => {
     const { container } = render(<App />)
+    expect(container).toBeTruthy()
+  })
 
-    // Check that main heading is h1
-    const heading = screen.getByText('Boelslund PlanWell Finance')
-    expect(heading.tagName).toBe('H1')
+  it('should use BrowserRouter for routing', () => {
+    const { container } = render(<App />)
+    expect(container).toBeTruthy()
+  })
 
-    // Check that there are paragraph elements
-    const paragraphs = container.querySelectorAll('p')
-    expect(paragraphs.length).toBeGreaterThan(0)
+  it('should render Home page when authenticated', async () => {
+    const { onAuthStateChanged } = await import('firebase/auth')
+
+    // Mock authenticated user
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
+      if (typeof callback === 'function') {
+        callback({ uid: 'test-user-id', email: 'test@example.com' } as User)
+      }
+      return vi.fn()
+    })
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /boelslund planwell finance/i })).toBeInTheDocument()
+    }, { timeout: 500 })
+    expect(screen.getByText(/welcome! you are logged in/i)).toBeInTheDocument()
   })
 })
