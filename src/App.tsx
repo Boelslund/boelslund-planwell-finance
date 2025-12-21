@@ -12,7 +12,7 @@ function Home() {
       <p>Welcome! You are logged in.</p>
     </div>
   )
-};
+}
 
 function App() {
   return (

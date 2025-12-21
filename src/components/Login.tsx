@@ -44,9 +44,6 @@ export function Login() {
         setLoading(true);
         try {
             await signIn(email, password);
-            // Clear form on success
-            setEmail("");
-            setPassword("");
             // Navigate to home
             navigate("/");
         } catch (error: unknown) {
@@ -99,4 +96,4 @@ export function Login() {
             <Link to="/register">Don't have an account? Sign Up</Link>
         </div>
     );
-};
+}

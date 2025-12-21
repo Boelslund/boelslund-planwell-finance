@@ -46,7 +46,7 @@ Enable users to calculate:
 - [x] Basic user profile in Firestore (`users/{userId}`)
 - [x] Store: email, displayName, createdAt
 - [x] Integrate profile creation into registration flow
-- [ ] Create default budget on first login (moved to Phase 2)
+- [-] Create default budget on first login (moved to Phase 2)
 - [ ] User settings/preferences structure
 
 ### 1.5 App Layout & Navigation (after auth complete)
@@ -57,6 +57,51 @@ Enable users to calculate:
   - [ ] Profile picture placeholder/avatar
   - [ ] User menu dropdown with logout button
   - [ ] Redirect to login page after logout
+
+### ✅ Phase 1 Testing Gate
+
+**Manual Testing Required Before Merging to Main:**
+
+- [ ] **Happy Path Testing**
+
+  - [ ] Register new account with valid email/password
+  - [ ] Verify email validation (invalid formats rejected)
+  - [ ] Verify password validation (minimum requirements enforced)
+  - [ ] Login with registered credentials
+  - [ ] Verify user profile created in Firestore
+  - [ ] Refresh page - verify user stays logged in
+  - [ ] Logout successfully
+  - [ ] Login again with same credentials
+
+- [ ] **Error Handling**
+
+  - [ ] Try registering with existing email (proper error message)
+  - [ ] Try logging in with wrong password (proper error message)
+  - [ ] Try logging in with non-existent email (proper error message)
+  - [ ] Test network failure scenarios (disconnect internet mid-operation)
+  - [ ] Verify all error messages are user-friendly
+
+- [ ] **Cross-Browser Testing**
+
+  - [ ] Chrome (latest)
+  - [ ] Firefox (latest)
+  - [ ] Safari (if available)
+  - [ ] Edge (latest)
+
+- [ ] **Security & Session**
+
+  - [ ] Protected routes redirect to login when not authenticated
+  - [ ] Cannot access login/register when already logged in
+  - [ ] Session persists across page refreshes
+  - [ ] Session cleared completely on logout
+
+- [ ] **UX & Accessibility**
+  - [ ] All forms have proper labels and placeholders
+  - [ ] Tab navigation works correctly
+  - [ ] Loading states display properly
+  - [ ] Success/error messages are visible and clear
+
+**🚫 Do not proceed to Phase 2 until all Phase 1 tests pass**
 
 ---
 
@@ -93,6 +138,33 @@ Enable users to calculate:
 - [ ] "Create new budget" button
 - [ ] Budget management page/modal
 
+### ✅ Phase 2 Testing Gate
+
+**Manual Testing Required Before Proceeding to Phase 3:**
+
+- [ ] **Budget CRUD Operations**
+
+  - [ ] Default budget created automatically on first login
+  - [ ] Create multiple budgets successfully
+  - [ ] Rename budget - changes reflect immediately
+  - [ ] Delete budget with confirmation dialog
+  - [ ] Cannot delete last remaining budget
+  - [ ] Switch between budgets - correct data displays
+
+- [ ] **Data Isolation**
+
+  - [ ] Create two test accounts
+  - [ ] Verify each user only sees their own budgets
+  - [ ] Verify Firestore security rules prevent unauthorized access
+
+- [ ] **Real-time Sync**
+  - [ ] Open same budget in two browser tabs
+  - [ ] Create budget in tab 1 - appears in tab 2
+  - [ ] Rename budget in tab 2 - updates in tab 1
+  - [ ] Delete budget in tab 1 - removes from tab 2
+
+**🚫 Do not proceed to Phase 3 until all Phase 2 tests pass**
+
 ---
 
 ## Phase 3: Expense Input & Management
@@ -122,6 +194,75 @@ Enable users to calculate:
 - [ ] Real-time sync across devices
 - [ ] Optimistic UI updates
 - [ ] Error handling for failed operations
+
+### ✅ Phase 3 Testing Gate
+
+**Manual Testing Required Before Proceeding to Phase 4:**
+
+- [ ] **Expense CRUD**
+
+  - [ ] Add expense with monthly frequency - saves correctly
+  - [ ] Add expense with annual frequency - saves correctly
+  - [ ] Edit expense - changes persist
+  - [ ] Delete expense - removes from list immediately
+  - [ ] Add 10+ expenses - list remains performant
+
+- [ ] **Data Validation**
+
+  - [ ] Cannot submit expense with negative amount
+  - [ ] Cannot submit expense with empty name
+  - [ ] Decimal amounts work correctly (e.g., $123.45)
+  - [ ] Very large amounts handled properly (e.g., $999,999.99)
+
+- [ ] **Real-time Updates**
+
+  - [ ] Open budget in two tabs
+  - [ ] Add expense in tab 1 - appears in tab 2
+  - [ ] Edit expense in tab 2 - updates in tab 1
+  - [ ] Delete expense in tab 1 - removes from tab 2
+
+- [ ] **User Experience**
+  - [ ] Form clears after successful submission
+  - [ ] Loading states show during save operations
+
+### ✅ Phase 4 Testing Gate (MVP Testing)
+
+**Manual Testing Required - Core Feature Validation:**
+
+- [ ] **Calculation Accuracy**
+
+  - [ ] Add monthly expense ($100) - monthly total shows $100
+  - [ ] Add annual expense ($1200) - monthly total increases by $100
+  - [ ] Mix of monthly and annual expenses calculates correctly
+  - [ ] Very small amounts (e.g., $0.01) calculate correctly
+  - [ ] Very large amounts (e.g., $10,000/month) calculate correctly
+
+- [ ] **Buffer Calculation**
+
+  - [ ] Buffer amount changes based on current month
+  - [ ] Buffer accounts for all upcoming annual bills
+  - [ ] Multiple annual bills with different timings calculated correctly
+  - [ ] Mid-year calculations are accurate
+
+- [ ] **Currency Formatting**
+
+  - [ ] All amounts display with proper currency symbol
+  - [ ] Decimal places formatted correctly (2 places)
+  - [ ] Thousands separators display properly (e.g., $1,234.56)
+
+- [ ] **End-to-End Scenario**
+  - [ ] Create new account
+  - [ ] Add realistic set of expenses (10-15 items)
+  - [ ] Verify monthly deposit calculation is reasonable
+  - [ ] Verify buffer amount makes sense
+  - [ ] Compare manual calculation with app results
+
+**🎯 MVP Complete - Ready for Beta Testing**
+
+- [ ] Error messages display for failed operations
+- [ ] Confirmation required before deleting expense
+
+**🚫 Do not proceed to Phase 4 until all Phase 3 tests pass**
 
 ---
 
@@ -178,6 +319,51 @@ Enable users to calculate:
 ### 6.1 Add Collaborators
 
 - [ ] Add collaborators to budget by email
+
+### ✅ Phase 6 Testing Gate (Multi-User Testing Required)
+
+**Manual Testing Required - Get 2-3 Testers:**
+
+- [ ] **Collaboration Flow**
+
+  - [ ] User A creates budget and invites User B as Editor
+  - [ ] User B receives and accepts invitation
+  - [ ] User B can see shared budget in their budget list
+  - [ ] User B can add/edit/delete expenses
+  - [ ] User B cannot delete budget or change collaborators
+  - [ ] User A invites User C as Viewer
+  - [ ] User C can see budget but cannot edit anything
+  - [ ] UI correctly hides edit buttons for User C
+
+- [ ] **Permission Changes**
+
+  - [ ] Owner changes Editor to Viewer - permissions update immediately
+  - [ ] Owner changes Viewer to Editor - new permissions work immediately
+  - [ ] Owner removes collaborator - they lose access immediately
+
+- [ ] **Security Testing**
+
+  - [ ] User C (Viewer) attempts direct Firestore write - rejected
+  - [ ] User D (non-collaborator) cannot access budget
+  - [ ] Removed collaborator cannot access budget after removal
+  - [ ] Owner can always access and modify their budget
+
+- [ ] **Real-time Collaboration**
+
+  - [ ] User A and User B both viewing same budget
+  - [ ] User A adds expense - User B sees it immediately
+  - [ ] User B edits expense - User A sees update immediately
+  - [ ] No conflicts or data loss during simultaneous edits
+
+- [ ] **Edge Cases**
+  - [ ] Owner transfers ownership to collaborator
+  - [ ] Original owner now has correct reduced permissions
+  - [ ] New owner has full control
+  - [ ] Collaborator leaves shared budget
+  - [ ] Cannot leave budget if you're the owner
+
+**🚫 Do not deploy to production until all collaboration tests pass**
+
 - [ ] Send email invitation (Firebase or custom)
 - [ ] Accept/decline invitation flow
 - [ ] Pending invitations list
@@ -276,6 +462,51 @@ Enable users to calculate:
 - [ ] Bulk delete
 - [ ] Bulk edit (change frequency, etc.)
 - [ ] Bulk tag/categorize
+
+## Pre-Production Testing Gate
+
+**Final Testing Before Public Launch:**
+
+- [ ] **Performance Testing**
+
+  - [ ] Load test with 50+ expenses in single budget
+  - [ ] Test app with 10+ budgets per user
+  - [ ] Measure page load times (< 3 seconds)
+  - [ ] Test with slow network (3G simulation)
+  - [ ] Monitor Firestore read/write quotas
+
+- [ ] **Mobile Testing**
+
+  - [ ] Test on actual iOS device (iPhone)
+  - [ ] Test on actual Android device
+  - [ ] Test various screen sizes (small, medium, large)
+  - [ ] Verify touch targets are appropriately sized
+  - [ ] Test portrait and landscape orientations
+
+- [ ] **Accessibility Audit**
+
+  - [ ] Screen reader testing (NVDA/JAWS/VoiceOver)
+  - [ ] Keyboard-only navigation
+  - [ ] Color contrast validation (WCAG AA)
+  - [ ] Focus indicators visible
+  - [ ] All images have alt text
+
+- [ ] **Security Audit**
+
+  - [ ] Review all Firestore security rules
+  - [ ] Test unauthorized access attempts
+  - [ ] Verify sensitive data not exposed in logs
+  - [ ] Check for XSS vulnerabilities
+  - [ ] Verify authentication tokens handled securely
+
+- [ ] **User Acceptance Testing**
+  - [ ] 5-10 beta testers use app for 1 week
+  - [ ] Collect feedback on usability
+  - [ ] Identify confusing UI elements
+  - [ ] Verify core features solve real problems
+  - [ ] Address critical feedback before launch
+
+---
 
 ---
 

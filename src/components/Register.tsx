@@ -12,7 +12,7 @@ export function Register() {
     const [loading, setLoading] = useState(false);
     const [authError, setAuthError] = useState("");
 
-    const { user, signUp } = useAuth();
+    const { user, signUp, signOut } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -70,27 +70,29 @@ export function Register() {
             try {
                 await createUserProfile(newUser.uid, newUser.email || email, displayName.trim());
             } catch (profileError) {
-                // Profile creation failed - rollback user account creation
+                // Profile creation failed - attempt rollback
                 try {
                     await newUser.delete();
                 } catch (deleteError) {
+                    // Rollback failed - sign out to prevent authenticated state without profile
                     console.error("Failed to rollback user creation:", deleteError);
+                    try {
+                        await signOut();
+                    } catch (signOutError) {
+                        console.error("Failed to sign out after rollback failure:", signOutError);
+                    }
+                    setAuthError("Account created but profile setup failed. Please contact support.");
+                    return;
                 }
                 // Re-throw the profile error to be handled by outer catch
                 throw profileError;
             }
 
-            // Clear form on success
-            setDisplayName("");
-            setEmail("");
-            setPassword("");
-            setConfirmPassword("");
             // Navigate to home page
             navigate("/");
         } catch (error: unknown) {
             // Handle Firebase auth errors
             const errorCode = (error as { code?: string })?.code || "";
-            const errorMessage = (error as { message?: string })?.message || "";
 
             if (errorCode === "auth/email-already-in-use") {
                 setAuthError("Email already in use");
@@ -98,7 +100,7 @@ export function Register() {
                 setAuthError("Weak password. Please use a stronger password.");
             } else if (errorCode === "auth/invalid-email") {
                 setAuthError("Invalid email address");
-            } else if (errorMessage.includes('Missing or insufficient permissions')) {
+            } else if (errorCode === "permission-denied") {
                 setAuthError("Database configuration error. Please contact support.");
             } else {
                 setAuthError("Failed to create an account. Please try again.");
