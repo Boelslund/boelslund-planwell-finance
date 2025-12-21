@@ -2,7 +2,10 @@ import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
-import { firebaseConfig } from './config/firebase.config';
+import {
+  firebaseConfig,
+  validateFirebaseConfig,
+} from './config/firebase.config';
 
 // Cached instances
 let appInstance: FirebaseApp | null = null;
@@ -41,6 +44,7 @@ export function getApp(): FirebaseApp {
   }
 
   if (!appInstance) {
+    validateFirebaseConfig();
     appInstance = initializeApp(firebaseConfig);
   }
 

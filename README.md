@@ -53,7 +53,7 @@ src/
 
 ## Development Roadmap
 
-See [NEXT_STEPS.md](./docs/NEXT_STEPS.md) for the feature development plan:
+See [NEXT_STEPS.md](./NEXT_STEPS.md) for the feature development plan:
 
 - Expense input & management
 - Budget calculation engine

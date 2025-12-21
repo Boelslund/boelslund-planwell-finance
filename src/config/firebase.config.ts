@@ -6,7 +6,7 @@
  * Validates that all required Firebase environment variables are present
  * @throws {Error} If any required environment variables are missing
  */
-function validateFirebaseConfig(): void {
+export function validateFirebaseConfig(): void {
   const requiredEnvVars = [
     'VITE_FIREBASE_API_KEY',
     'VITE_FIREBASE_AUTH_DOMAIN',
@@ -14,22 +14,20 @@ function validateFirebaseConfig(): void {
     'VITE_FIREBASE_STORAGE_BUCKET',
     'VITE_FIREBASE_MESSAGING_SENDER_ID',
     'VITE_FIREBASE_APP_ID',
-  ]
+  ];
 
   const missingVars = requiredEnvVars.filter(
     (varName) => !import.meta.env[varName]
-  )
+  );
 
   if (missingVars.length > 0) {
     throw new Error(
-      `Missing required Firebase environment variables: ${missingVars.join(', ')}\n` +
-        'Please ensure these variables are set in your .env file.'
-    )
+      `Missing required Firebase environment variables: ${missingVars.join(
+        ', '
+      )}\n` + 'Please ensure these variables are set in your .env file.'
+    );
   }
 }
-
-// Validate configuration before exporting
-validateFirebaseConfig()
 
 export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -39,4 +37,4 @@ export const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-}
+};
