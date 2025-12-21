@@ -18,7 +18,7 @@ Enable users to calculate:
 ### 1.1 Firebase Authentication
 - [x] Configure Firebase Auth in project
 - [x] Create authentication context/provider
-- [ ] Protected route wrapper component
+- [x] Protected route wrapper component
 
 ### 1.2 Registration & Login UI
 - [ ] Create `Login` component (TDD)
