@@ -1,11 +1,14 @@
 # Development Roadmap
 
 ## Core Goal
+
 Enable users to calculate:
+
 1. **How much money should be in their budget account right now** (the account bills are paid from)
 2. **The fixed monthly deposit amount** needed to ensure all bills can always be paid
 
 ### Multi-User Support
+
 - **User accounts** with authentication
 - **Multiple budgets** per user (personal, household, business)
 - **Budget sharing** with role-based access control (Owner, Editor, Viewer)
@@ -16,19 +19,22 @@ Enable users to calculate:
 ## Phase 1: Authentication & User Setup
 
 ### 1.1 Firebase Authentication
+
 - [x] Configure Firebase Auth in project
 - [x] Create authentication context/provider
 - [x] Protected route wrapper component
 
 ### 1.2 Registration & Login UI
-- [ ] Create `Login` component (TDD)
+
+- [x] Create `Login` component (TDD)
 - [ ] Create `Register` component (TDD)
-- [ ] Email/password authentication
-- [ ] Form validation (email format, password strength)
-- [ ] Error handling (user already exists, wrong password, etc.)
-- [ ] Loading states
+- [ ] Email/password authentication (implement signIn/signUp/signOut in AuthContext)
+- [x] Form validation (email format, password strength)
+- [x] Error handling (user already exists, wrong password, etc.)
+- [x] Loading states
 
 ### 1.3 User Session Management
+
 - [ ] Persist authentication state
 - [ ] Auto-login on page refresh
 - [ ] Logout functionality
@@ -36,6 +42,7 @@ Enable users to calculate:
 - [ ] Email verification (optional for MVP)
 
 ### 1.4 User Profile
+
 - [ ] Basic user profile in Firestore (`users/{userId}`)
 - [ ] Store: email, displayName, createdAt
 - [ ] Create default budget on first login
@@ -46,6 +53,7 @@ Enable users to calculate:
 ## Phase 2: Budget Management & Data Structure
 
 ### 2.1 Firestore Schema Design
+
 - [ ] Design and document schema:
   ```
   users/{userId}/
@@ -58,6 +66,7 @@ Enable users to calculate:
 - [ ] Test rules for data isolation
 
 ### 2.2 Budget CRUD Operations
+
 - [ ] Create `Budget` TypeScript interface/type
 - [ ] Create default budget on user registration
 - [ ] List user's budgets
@@ -67,6 +76,7 @@ Enable users to calculate:
 - [ ] Set active budget (in context/state)
 
 ### 2.3 Budget Selector UI
+
 - [ ] Budget selector dropdown/menu component
 - [ ] Show active budget name
 - [ ] Switch between budgets
@@ -78,6 +88,7 @@ Enable users to calculate:
 ## Phase 3: Expense Input & Management
 
 ### 3.1 Add Expense Form
+
 - [ ] Create `ExpenseForm` component (TDD)
 - [ ] Input fields: expense name, amount, frequency (monthly/annual)
 - [ ] Form validation (positive numbers, required fields)
@@ -85,6 +96,7 @@ Enable users to calculate:
 - [ ] Save to Firestore: `budgets/{budgetId}/expenses/{expenseId}`
 
 ### 3.2 Expense List Display
+
 - [ ] Create `ExpenseList` component (TDD)
 - [ ] Real-time listener for expenses in active budget
 - [ ] Display all expenses in table/list
@@ -93,6 +105,7 @@ Enable users to calculate:
 - [ ] Edit expense functionality
 
 ### 3.3 Expense Operations
+
 - [ ] Create expense (to Firestore)
 - [ ] Update expense
 - [ ] Delete expense
@@ -105,18 +118,21 @@ Enable users to calculate:
 ## Phase 4: Budget Calculation Engine
 
 ### 4.1 Monthly Calculation Logic
+
 - [ ] Create `calculateMonthlyAmount` utility function (TDD)
 - [ ] Convert annual expenses to monthly (amount / 12)
 - [ ] Sum all monthly amounts
 - [ ] Handle different frequencies (monthly, annual, quarterly, etc.)
 
 ### 4.2 Buffer Amount Calculation
+
 - [ ] Determine current month's position in year
 - [ ] Calculate how many months until next annual bills
 - [ ] Determine required buffer in account
 - [ ] Account for multiple bills with different due dates
 
 ### 4.3 Results Display
+
 - [ ] Create `BudgetSummary` component (TDD)
 - [ ] Show: Total monthly expenses
 - [ ] Show: Required fixed monthly deposit
@@ -128,16 +144,19 @@ Enable users to calculate:
 ## Phase 5: Enhanced Features
 
 ### 5.1 Visual Representation
+
 - [ ] Add chart/graph showing expense breakdown
 - [ ] Monthly cash flow visualization
 - [ ] Progress indicator for budget health
 
 ### 5.2 Bill Due Dates
+
 - [ ] Add due date field to expenses
 - [ ] Show upcoming bills (next 30 days)
 - [ ] Warning if buffer is insufficient for upcoming bills
 
 ### 5.3 Scenarios & What-If
+
 - [ ] "What if I add this expense?" calculator
 - [ ] Adjust expenses temporarily to see impact
 - [ ] Compare different expense scenarios
@@ -147,12 +166,14 @@ Enable users to calculate:
 ## Phase 6: Budget Sharing & Collaboration (RBAC)
 
 ### 6.1 Add Collaborators
+
 - [ ] Add collaborators to budget by email
 - [ ] Send email invitation (Firebase or custom)
 - [ ] Accept/decline invitation flow
 - [ ] Pending invitations list
 
 ### 6.2 Role-Based Access Control
+
 - [ ] Define roles:
   - **Owner**: Full control (edit, delete, share, transfer ownership)
   - **Editor**: Can add/edit/delete expenses
@@ -162,6 +183,7 @@ Enable users to calculate:
 - [ ] Enforce permissions in Firestore security rules
 
 ### 6.3 Collaboration UI
+
 - [ ] Show collaborators list in budget settings
 - [ ] Edit collaborator role (owner only)
 - [ ] Remove collaborator (owner only)
@@ -170,6 +192,7 @@ Enable users to calculate:
 - [ ] Shared budget indicator/badge in budget list
 
 ### 6.4 Firestore Security Rules for RBAC
+
 - [ ] Rules: Users can only read budgets they own or collaborate on
 - [ ] Rules: Only owners can modify budget metadata
 - [ ] Rules: Editors and owners can modify expenses
@@ -181,12 +204,14 @@ Enable users to calculate:
 ## Phase 7: Advanced Collaboration & Admin Features
 
 ### 7.1 Activity Log & Audit Trail
+
 - [ ] Track all changes (who, what, when)
 - [ ] Activity feed per budget
 - [ ] Filter by user, action type, date
 - [ ] Restore previous versions (expense history)
 
 ### 7.2 Notifications
+
 - [ ] Email notifications for:
   - Budget shared with you
   - Changes to shared budgets
@@ -196,6 +221,7 @@ Enable users to calculate:
 - [ ] Notification preferences per user
 
 ### 7.3 Team/Household Features
+
 - [ ] Household/family budget templates
 - [ ] Multiple users contributing to same budget
 - [ ] Split expenses between users
@@ -203,6 +229,7 @@ Enable users to calculate:
 - [ ] Individual contribution tracking
 
 ### 7.4 Admin Dashboard (for Budget Owners)
+
 - [ ] View all collaborators and their roles
 - [ ] Activity statistics
 - [ ] Bulk permission changes
@@ -213,6 +240,7 @@ Enable users to calculate:
 ## Phase 8: Data Management & Export
 
 ### 8.1 Export & Import
+
 - [ ] Export budget to CSV
 - [ ] Export budget to JSON
 - [ ] Import expenses from CSV
@@ -220,17 +248,20 @@ Enable users to calculate:
 - [ ] Validation on import
 
 ### 8.2 Budget Templates
+
 - [ ] Duplicate budget (as template)
 - [ ] Pre-built templates (household, student, business)
 - [ ] Share template with community (optional)
 
 ### 8.3 Archive & Backup
+
 - [ ] Archive old budgets (hide from main list)
 - [ ] Restore archived budgets
 - [ ] Automatic backup notifications
 - [ ] Download all data (GDPR compliance)
 
 ### 8.4 Bulk Operations
+
 - [ ] Select multiple expenses
 - [ ] Bulk delete
 - [ ] Bulk edit (change frequency, etc.)
@@ -241,16 +272,19 @@ Enable users to calculate:
 ## Phase 9: Polish & UX
 
 ### 9.1 Responsive Design
+
 - [ ] Mobile-friendly layout
 - [ ] Tablet optimization
 - [ ] Desktop layout
 
 ### 9.2 Onboarding
+
 - [ ] Welcome screen with explanation
 - [ ] Sample data for first-time users
 - [ ] Tutorial/help section
 
 ### 9.3 Settings & Preferences
+
 - [ ] Currency selection
 - [ ] Date format preferences
 - [ ] Theme (light/dark mode)
@@ -271,6 +305,7 @@ Enable users to calculate:
 ## Current Status
 
 **✅ Completed:**
+
 - Project setup (React + TypeScript + Vite)
 - Testing framework (Vitest + React Testing Library)
 - Firebase configuration structure
@@ -278,6 +313,7 @@ Enable users to calculate:
 - Sample Counter component with tests
 
 **🎯 Next Up:**
+
 1. Set up Firebase Authentication
 2. Create Login/Register components (TDD)
 3. Build authentication context
