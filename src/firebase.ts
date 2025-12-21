@@ -100,8 +100,8 @@ export function getAnalyticsInstance(): Analytics | null {
 // Legacy exports for backward compatibility
 // These will throw in test environments, encouraging use of the getter functions
 export const app = new Proxy({} as FirebaseApp, {
-  get() {
-    return getApp()
+  get(_target, prop) {
+    return getApp()[prop as keyof FirebaseApp]
   }
 })
 
@@ -118,7 +118,8 @@ export const db = new Proxy({} as Firestore, {
 })
 
 export const analytics = new Proxy({} as Analytics, {
-  get() {
-    return getAnalyticsInstance()
+  get(_target, prop) {
+    const instance = getAnalyticsInstance()
+    return instance ? instance[prop as keyof Analytics] : null
   }
 })

@@ -15,7 +15,7 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "firebase": "^10.7.1",
+    "firebase": "^12.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -37,7 +37,7 @@
     "globals": "^15.13.0",
     "jsdom": "^27.3.0",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8",
+    "vite": "^7.3.0",
     "vitest": "^4.0.16"
   }
 }
