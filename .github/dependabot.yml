@@ -1,0 +1,49 @@
+# Dependabot configuration for automated dependency updates
+# Documentation: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    # Target test branch (default branch)
+    target-branch: "test"
+    # Add version label for automated versioning
+    labels:
+      - "dependencies"
+      - "version:patch"
+    commit-message:
+      # Prefix commit messages
+      prefix: "chore(deps)"
+    # Group minor and patch updates together to reduce PR noise
+    groups:
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    target-branch: "test"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "version:patch"
+    commit-message:
+      prefix: "chore(actions)"

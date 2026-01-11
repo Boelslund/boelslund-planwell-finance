@@ -1,0 +1,11 @@
+# CODEOWNERS
+# These owners will be automatically requested for review when PRs modify matching files.
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owner - will be requested for review on all PRs
+* @Boelslund
+
+# Specific areas (add more as needed)
+# /.github/workflows/ @Boelslund
+# /docs/ @Boelslund
+# /src/ @Boelslund

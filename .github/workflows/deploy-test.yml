@@ -5,6 +5,9 @@ on:
     branches:
       - test
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -29,6 +32,8 @@ jobs:
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment:
       name: test
       url: https://boelslund-planwell-finance-dev.web.app
@@ -54,7 +59,9 @@ jobs:
             });
 
             if (prs.length === 0) {
-              core.setFailed('No PR found for this commit');
+              core.warning('No PR found for this commit. Using default patch version bump.');
+              core.notice('Direct commits to test branch will default to patch version. Use PRs with version labels for proper semantic versioning.');
+              core.setOutput('bump', 'patch');
               return;
             }
 
@@ -71,7 +78,7 @@ jobs:
             }
 
             core.setOutput('bump', bump);
-            core.info(`Version bump type: ${bump}`);
+            core.info(`Version bump type from PR: ${bump}`);
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

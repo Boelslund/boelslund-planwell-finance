@@ -6,6 +6,9 @@ on:
     branches:
       - test
 
+permissions:
+  pull-requests: read
+
 jobs:
   check-label:
     runs-on: ubuntu-latest

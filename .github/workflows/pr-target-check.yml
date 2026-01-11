@@ -1,0 +1,41 @@
+name: PR Target Branch Check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check-target:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR target branch
+        run: |
+          BASE_BRANCH="${{ github.base_ref }}"
+          HEAD_BRANCH="${{ github.head_ref }}"
+
+          echo "PR from: $HEAD_BRANCH"
+          echo "PR to: $BASE_BRANCH"
+
+          # If targeting main, only allow from test branch
+          if [[ "$BASE_BRANCH" == "main" ]] && [[ "$HEAD_BRANCH" != "test" ]]; then
+            echo "❌ ERROR: Direct PRs from feature branches to main are not allowed!"
+            echo ""
+            echo "Required workflow:"
+            echo "  1. Create PR from feature branch → test"
+            echo "  2. After merge, create PR from test → main"
+            echo ""
+            echo "Current PR: $HEAD_BRANCH → main (NOT ALLOWED)"
+            exit 1
+          fi
+
+          # If targeting test, only allow from feature branches (not main)
+          if [[ "$BASE_BRANCH" == "test" ]] && [[ "$HEAD_BRANCH" == "main" ]]; then
+            echo "❌ ERROR: PRs from main to test are not allowed!"
+            echo "The workflow should be: feature → test → main"
+            exit 1
+          fi
+
+          echo "✅ PR target branch is valid"

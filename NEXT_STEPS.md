@@ -771,6 +771,41 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 
 ---
 
+## Post-Launch Security & Quality Enhancements
+
+### Priority: High (After First Production Release)
+
+- [ ] **SonarCloud Integration** - Deep code quality and security analysis
+  - Sign up at [sonarcloud.io](https://sonarcloud.io)
+  - Connect to GitHub repository
+  - Add SonarCloud status check to rulesets
+  - Review and fix identified issues
+
+- [ ] **Codecov Integration** - Track test coverage metrics
+  - Sign up at [codecov.io](https://codecov.io)
+  - Add coverage reporting to test workflow
+  - Set minimum coverage thresholds
+  - Review coverage on every PR
+
+### Priority: Medium (Nice to Have)
+
+- [ ] **Enhanced CodeQL Queries** - Enable more comprehensive security scans
+  - Edit `.github/workflows/codeql.yml`
+  - Uncomment `queries: security-extended,security-and-quality`
+  - Review and fix new findings
+
+- [ ] **Snyk Integration** - Alternative/additional dependency scanning
+  - Consider if Dependabot isn't sufficient
+  - More detailed vulnerability information
+  - Container and infrastructure scanning
+
+- [ ] **Performance Monitoring** - Track real-world performance
+  - Firebase Performance Monitoring
+  - Web Vitals tracking
+  - Error tracking (Sentry or similar)
+
+---
+
 ## Development Workflow Reminder
 
 ```bash

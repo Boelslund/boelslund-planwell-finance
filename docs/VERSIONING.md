@@ -45,6 +45,8 @@ Before reaching version 1.0.0, the project is considered in initial development:
 
 ## Workflow
 
+### Recommended: Via Pull Request (Preferred)
+
 1. Create a feature branch
 2. Make your changes
 3. Open a PR to `test` branch
@@ -52,6 +54,17 @@ Before reaching version 1.0.0, the project is considered in initial development:
 5. Wait for PR checks to pass
 6. Merge the PR
 7. The version will be automatically bumped and deployed
+
+### Alternative: Direct Commits
+
+If you push directly to the `test` branch (not recommended):
+
+- The version will automatically bump as a **patch** version
+- A warning will be logged in the workflow
+- This should only be used for emergency hotfixes or when absolutely necessary
+- You lose the ability to specify major or minor version bumps
+
+**Best Practice:** Always use PRs with version labels for proper semantic versioning control.
 
 ## Labels Setup
 
@@ -68,6 +81,38 @@ gh label create "version:patch" --color "0e8a16" --description "Bug fixes and mi
 gh label create "version:minor" --color "fbca04" --description "New features, backward compatible"
 gh label create "version:major" --color "d93f0b" --description "Breaking changes"
 ```
+
+## Branch Protection Configuration
+
+Branch protection ensures that changes to `test` and `main` branches follow proper review and testing processes.
+
+**📚 See [BRANCH_PROTECTION.md](BRANCH_PROTECTION.md) for complete setup instructions.**
+
+### Quick Summary
+
+**⚠️ Requirements:**
+
+- Branch protection only works on **public repositories** (free) or **private repositories with GitHub Pro/Team/Enterprise**
+- Private repos on free accounts cannot enforce branch protection
+
+**What you get:**
+
+- All changes to `test` and `main` require pull requests
+- PRs must be reviewed and approved
+- PRs must pass automated tests (status checks)
+- Prevents accidental direct pushes or deletions
+- Allows GitHub Actions to push automated version bumps
+
+**Setup steps:**
+
+1. Make repository public (or upgrade to Pro) if needed
+2. Configure merge settings (allow both squash and regular merge)
+3. Create three rulesets:
+   - [Test branch ruleset](RULESET_TEST.md) - PR workflow for test
+   - [Main branch ruleset](RULESET_MAIN.md) - PR workflow for main
+   - [Basic protections ruleset](RULESET_BASIC.md) - Create/delete restrictions
+
+See the linked documentation for detailed configuration steps.
 
 ## Version History
 
