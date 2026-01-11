@@ -64,25 +64,23 @@ GitHub provides several free security features for public repositories.
    - ✅ **Dependabot security updates** (auto-opens PRs for security fixes)
    - ✅ **Secret scanning** (detects accidentally committed secrets)
    - ✅ **Push protection** (blocks commits containing secrets)
-   - ✅ **Code scanning** → Click "Set up" → "Default" (enables CodeQL)
-  - Or the CodeQL workflow [.github/workflows/codeql.yml](.github/workflows/codeql.yml) will run automatically
+   - ✅ **Code scanning** → Click "Set up" → Select **"Default"** (enables managed CodeQL)
 
 **What each does:**
 
 - **Dependabot**: Scans dependencies for known vulnerabilities, opens PRs to fix them
 - **Secret scanning**: Detects API keys, tokens, passwords in commits
 - **Push protection**: Prevents commits with secrets from being pushed
-- **CodeQL**: Analyzes code for security vulnerabilities (SQL injection, XSS, etc.)
-
-**Workflow:**
-
-The repository includes:
-- [.github/workflows/codeql.yml](.github/workflows/codeql.yml) - Weekly security scans
-- [.github/dependabot.yml](.github/dependabot.yml) - Dependency update configuration
+- **CodeQL (Default)**: Analyzes code for security vulnerabilities, managed by GitHub
 
 **Configuration:**
 
-Dependabot is configured for:
+The repository includes:
+
+- [.github/dependabot.yml](.github/dependabot.yml) - Dependency update configuration
+
+CodeQL uses GitHub's default setup (no workflow file needed) and runs automatically on pushes and PRs.
+
 - Weekly dependency update checks (Mondays at 9am)
 - Automatic version labels (`version:patch`)
 - Groups minor/patch updates to reduce PR noise

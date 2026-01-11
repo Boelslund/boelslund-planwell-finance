@@ -54,12 +54,12 @@ Expand **"Branch protections"** section and configure:
 - **Status checks that are required:**
   - Select `check-target` (from PR Target Branch Check workflow)
   - ⚠️ This check will only appear after the workflow runs at least once
-  - Optionally add: `CodeQL analysis (javascript-typescript)` (security scan)
+  - Optionally add: `CodeQL` (security scan from default setup)
   - Add any production deployment checks if you add a deployment workflow later
 
 The `check-target` status check enforces that only the test branch can create PRs to main, preventing accidental direct merges from feature branches.
 
-The `CodeQL analysis` check ensures code passes security analysis before merging to production.
+The `CodeQL` check ensures code passes security analysis before merging to production.
 
 ### ✅ Require conversation resolution before merging
 

@@ -59,9 +59,9 @@ Expand **"Branch protections"** section and configure:
   - Click **Add checks**
   - Type: `test` (this is the job name from deploy-test.yml workflow)
   - Press Enter to add it
-  - Optionally add: `CodeQL analysis (javascript-typescript)` (security scan)
+  - Optionally add: `CodeQL` (security scan from default setup)
 
-> **Note:** Status checks only appear in the dropdown after workflows run at least once. You may need to create this ruleset without status checks first, run the workflows, then edit the ruleset to add them.
+> **Note:** Status checks only appear in the dropdown after workflows run at least once. The CodeQL check name may vary depending on GitHub's default setup configuration.
 
 ### ✅ Require conversation resolution before merging
 
