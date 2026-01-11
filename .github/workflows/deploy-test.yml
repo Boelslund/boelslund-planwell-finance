@@ -118,24 +118,24 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           BUMP_TYPE="${{ steps.version.outputs.bump }}"
-          ORIGINAL_BUMP_TYPE="$BUMP_TYPE"
 
           # Keep bumping until we find a version that doesn't exist
+          # Each iteration increments from the previous attempt, preserving semantic intent
+          # Example: 1.0.0 -> major bump -> 2.0.0 (collision) -> 3.0.0 -> 4.0.0, etc.
           MAX_ATTEMPTS="${VERSION_MAX_ATTEMPTS:-50}"
           ATTEMPT=0
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            # Calculate next version
+            # Calculate next version (increments from current state in package.json)
             NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version | sed 's/^v//')
             
             # Check if tag already exists locally
             if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
-              echo "Tag v$NEW_VERSION already exists locally, trying next ${ORIGINAL_BUMP_TYPE} version..."
-              # Reset and try again with the original bump type
-              # This preserves the original semantic intent (major/minor/patch)
-              git checkout -- package.json package-lock.json
-              BUMP_TYPE="$ORIGINAL_BUMP_TYPE"
+              echo "Tag v$NEW_VERSION already exists locally, trying next ${BUMP_TYPE} version..."
+              # Don't reset - keep the incremented version and bump again
+              # This way each attempt increments: 1.0.0 -> 2.0.0 -> 3.0.0 for major bumps
               ATTEMPT=$((ATTEMPT + 1))
+              continue
             else
               echo "Creating new version: v$NEW_VERSION"
               # Commit and tag the version bump
@@ -146,23 +146,28 @@ jobs:
               # Attempt to push with error handling for race conditions
               if git push --follow-tags 2>&1 | tee /tmp/push_output.txt; then
                 echo "Successfully pushed version v$NEW_VERSION"
+                rm -f /tmp/push_output.txt
                 break
               else
                 # Check if push failed due to tag already existing (race condition)
                 if grep -q "tag.*already exists\|Updates were rejected" /tmp/push_output.txt; then
                   echo "Race condition detected: Tag v$NEW_VERSION was created remotely during our attempt"
-                  echo "Resetting and retrying with next ${ORIGINAL_BUMP_TYPE} version..."
-                  # Undo the local commit and tag
+                  echo "Retrying with next ${BUMP_TYPE} version..."
+                  # Undo the local commit and tag, but keep the version bump in package.json
+                  # Safe in CI: working directory only contains controlled changes made by this workflow
+                  # (package.json/package-lock.json version bump commit and tag)
                   git tag -d "v$NEW_VERSION"
-                  git reset --hard HEAD~1
+                  git reset --soft HEAD~1
                   # Fetch latest tags from remote
                   git fetch --tags
-                  BUMP_TYPE="$ORIGINAL_BUMP_TYPE"
                   ATTEMPT=$((ATTEMPT + 1))
+                  rm -f /tmp/push_output.txt
+                  continue
                 else
                   # Different error, fail immediately
                   echo "Error: Push failed for unexpected reason"
                   cat /tmp/push_output.txt
+                  rm -f /tmp/push_output.txt
                   exit 1
                 fi
               fi
