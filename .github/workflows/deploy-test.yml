@@ -109,8 +109,27 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          npm version ${{ steps.version.outputs.bump }} -m "chore: bump version to %s [skip ci]"
-          git push --follow-tags
+
+          # Get current version and calculate next version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          BUMP_TYPE="${{ steps.version.outputs.bump }}"
+
+          # Calculate what the new version would be
+          NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version | sed 's/^v//')
+
+          # Check if tag already exists
+          if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
+            echo "Tag v$NEW_VERSION already exists. Skipping version bump."
+            # Reset package.json to original version
+            git checkout -- package.json package-lock.json
+          else
+            echo "Creating new version: v$NEW_VERSION"
+            # Commit and tag the version bump
+            git add package.json package-lock.json
+            git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+            git tag -a "v$NEW_VERSION" -m "chore: bump version to $NEW_VERSION [skip ci]"
+            git push --follow-tags
+          fi
 
       - name: Build
         run: npm run build
