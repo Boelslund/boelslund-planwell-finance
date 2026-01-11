@@ -166,6 +166,25 @@ The test and main rulesets have **no bypass** configured, ensuring PR requiremen
 
 ---
 
+## Allowing GitHub Actions to Bypass Branch Protection
+
+For automated version bumping to work, GitHub Actions needs permission to push directly to the `test` branch.
+
+### Configure Deploy Keys Bypass
+
+1. Go to **Settings** → **Rules** → **Rulesets**
+2. Click on **test-branch-protection** ruleset
+3. Scroll down to **Bypass list** section
+4. Click **Add bypass**
+5. Select **Deploy keys**
+6. Click **Save changes**
+
+That's it! The standard `GITHUB_TOKEN` used by workflows can now bypass the PR requirement for pushing version bumps.
+
+**Why this works:** Adding "Deploy keys" to the bypass list allows repository-level automation tokens (like `GITHUB_TOKEN`) to bypass branch protection rules without requiring a Personal Access Token.
+
+---
+
 ## What These Rulesets Protect Against
 
 ✅ Direct commits to `test` or `main` branches (humans)  
