@@ -5,7 +5,7 @@
 # Global owner - will be requested for review on all PRs
 * @Boelslund
 
-# Specific areas (add more as needed)
+# Specific areas (examples — uncomment and adjust owners when adding more code owners)
 # /.github/workflows/ @Boelslund
 # /docs/ @Boelslund
 # /src/ @Boelslund

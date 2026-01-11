@@ -9,6 +9,8 @@ permissions:
   contents: read
 
 jobs:
+  # Test first: Validate the PR code before any version bumping
+  # This ensures we only bump versions for code that passes all checks
   test:
     runs-on: ubuntu-latest
     permissions:
@@ -31,10 +33,18 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:ci
 
+  # Build and deploy only after tests pass
+  # Version bump happens here (not before tests) because:
+  # - We want to test the actual PR code, not code + version change
+  # - If tests fail, no version bump occurs (fail-safe)
+  # - Version bump only changes metadata (package.json version number)
+  # - The deployed build and git tag both use the bumped version
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
     permissions:
+      # Escalate to 'write' to allow automated version bumping and tag pushing
+      # This job commits package.json changes and pushes version tags
       contents: write
     environment:
       name: test
@@ -60,14 +70,18 @@ jobs:
               commit_sha: commit
             });
 
-            if (prs.length === 0) {
-              core.warning('No PR found for this commit. Using default patch version bump.');
+            // Filter to only merged PRs (exclude open/closed but unmerged PRs)
+            const mergedPrs = prs.filter(pr => pr.merged_at !== null);
+
+            if (mergedPrs.length === 0) {
+              core.info(`No merged PR found for commit: ${commit}`);
+              core.warning('No merged PR found for this commit. Using default patch version bump.');
               core.notice('Direct commits to test branch will default to patch version. Use PRs with version labels for proper semantic versioning.');
               core.setOutput('bump', 'patch');
               return;
             }
 
-            const pr = prs[0];
+            const pr = mergedPrs[0];
             const labels = pr.labels.map(label => label.name);
 
             let bump = 'patch'; // default

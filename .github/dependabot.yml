@@ -30,6 +30,7 @@ updates:
       production-dependencies:
         dependency-type: "production"
         update-types:
+          - "minor"
           - "patch"
 
   # GitHub Actions dependencies

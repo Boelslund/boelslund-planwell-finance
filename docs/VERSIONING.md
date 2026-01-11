@@ -110,7 +110,7 @@ Branch protection ensures that changes to `test` and `main` branches follow prop
 3. Create three rulesets:
    - [Test branch ruleset](RULESET_TEST.md) - PR workflow for test
    - [Main branch ruleset](RULESET_MAIN.md) - PR workflow for main
-   - [Basic protections ruleset](RULESET_BASIC.md) - Create/delete restrictions
+   - [Common protections ruleset](RULESET_COMMON.md) - Shared protections for both branches
 
 See the linked documentation for detailed configuration steps.
 

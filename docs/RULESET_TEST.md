@@ -95,10 +95,6 @@ No additional settings needed.
 
 **Leave OFF** - We're enforcing squash merge at the repository level instead
 
-### ❌ Require deployments to succeed
-
-**Leave OFF** (not applicable)
-
 ### ❌ Block force pushes
 
 **Leave OFF** - Handled in the common ruleset (`protected-branches-common`)
