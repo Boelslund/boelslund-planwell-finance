@@ -42,6 +42,13 @@ jobs:
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
+    env:
+      # Maximum attempts to find an available version tag before failing
+      # Default: 50 attempts should handle most collision scenarios
+      # - Accounts for concurrent workflow runs
+      # - Provides buffer for race conditions and retries
+      # - Can be adjusted if your deployment frequency requires more attempts
+      VERSION_MAX_ATTEMPTS: 50
     permissions:
       # Escalate to 'write' to allow automated version bumping and tag pushing
       # This job commits package.json changes and pushes version tags
@@ -109,8 +116,93 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          npm version ${{ steps.version.outputs.bump }} -m "chore: bump version to %s [skip ci]"
-          git push --follow-tags
+
+          BUMP_TYPE="${{ steps.version.outputs.bump }}"
+
+          # Fetch latest tags from remote before checking for collisions
+          # Ensures we detect tags created by concurrent workflows
+          git fetch --tags
+
+          # Keep bumping until we find a version that doesn't exist
+          # Each iteration increments from the previous attempt, preserving semantic intent
+          # Example: 1.0.0 -> major bump -> 2.0.0 (collision) -> 3.0.0 -> 4.0.0, etc.
+          MAX_ATTEMPTS="${VERSION_MAX_ATTEMPTS:-50}"
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            # Calculate next version (increments from current state in package.json)
+            NEW_VERSION=$(npm version "$BUMP_TYPE" --no-git-tag-version 2>/tmp/npm_version_error.log | sed 's/^v//') || {
+              echo "Error: 'npm version' command failed for bump type '$BUMP_TYPE'."
+              echo "npm version stderr output:"
+              cat /tmp/npm_version_error.log || true
+              rm -f /tmp/npm_version_error.log
+              exit 1
+            }
+            rm -f /tmp/npm_version_error.log
+            # Validate that NEW_VERSION looks like a semantic version (e.g., 1.2.3, optionally with pre-release/build)
+            if ! echo "$NEW_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([\-+][0-9A-Za-z\.-]+)?$'; then
+              echo "Error: npm version produced an invalid or unexpected version string: '$NEW_VERSION'"
+              exit 1
+            fi
+            
+            # Check if tag already exists locally
+            if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
+              echo "Tag v$NEW_VERSION already exists locally, trying next ${BUMP_TYPE} version..."
+              # Don't reset - keep the incremented version and bump again
+              # This way each attempt increments: 1.0.0 -> 2.0.0 -> 3.0.0 for major bumps
+              ATTEMPT=$((ATTEMPT + 1))
+              continue
+            else
+              echo "Creating new version: v$NEW_VERSION"
+              # Commit and tag the version bump
+              git add package.json package-lock.json
+              git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+              git tag -a "v$NEW_VERSION" -m "chore: bump version to $NEW_VERSION [skip ci]"
+              
+              # Attempt to push with error handling for race conditions
+              # --atomic ensures all-or-nothing push (both commit and tag succeed or both fail)
+              if git push --atomic --follow-tags 2>&1 | tee /tmp/push_output.txt; then
+                echo "Successfully pushed version v$NEW_VERSION"
+                rm -f /tmp/push_output.txt
+                break
+              else
+                PUSH_EXIT_CODE=$?
+                echo "Push failed with exit code: $PUSH_EXIT_CODE"
+                
+                # Check if push failed due to tag/ref already existing (likely race condition)
+                # This is a best-effort check; we primarily rely on exit code with --atomic
+                if grep -qiE "(already exists|updates were rejected|reference already exists|fetch first|non-fast-forward|tag.*exists)" /tmp/push_output.txt; then
+                  echo "Race condition detected: Tag v$NEW_VERSION was created remotely during our attempt"
+                  echo "Retrying with next ${BUMP_TYPE} version..."
+                  # Undo the local commit and tag, but keep the version bump in package.json
+                  # Safe in CI: working directory only contains controlled changes made by this workflow
+                  # (package.json/package-lock.json version bump commit and tag)
+                  git tag -d "v$NEW_VERSION"
+                  git reset --soft HEAD~1
+                  # Fetch latest tags from remote
+                  git fetch --tags
+                  ATTEMPT=$((ATTEMPT + 1))
+                  rm -f /tmp/push_output.txt
+                  continue
+                else
+                  # Different error (permissions, network, etc.), fail immediately
+                  echo "Error: Push failed for unexpected reason"
+                  cat /tmp/push_output.txt
+                  rm -f /tmp/push_output.txt
+                  exit 1
+                fi
+              fi
+            fi
+          done
+
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "Error: Could not find available version tag after $MAX_ATTEMPTS attempts"
+            # Clean up: Reset package files to their original state
+            git restore package.json package-lock.json
+            echo "Reset package.json and package-lock.json to original state"
+            rm -f /tmp/push_output.txt
+            exit 1
+          fi
 
       - name: Build
         run: npm run build
