@@ -79,7 +79,7 @@ Before reaching version 1.0.0, the project is considered in initial development:
 4. **Automatic version bump**:
    - Workflow detects the version label from the merged PR
    - Bumps version automatically (e.g., 0.1.0 → 0.1.1)
-   - Pushes commit with `[skip ci]` to avoid retriggering
+   - Pushes commit with `[skip ci]` to avoid re-triggering
    - Creates git tag (e.g., `v0.1.1`)
    - Deploys to test environment
 
@@ -88,7 +88,7 @@ Before reaching version 1.0.0, the project is considered in initial development:
 1. When ready to release to production, create PR from `test` to `main` via GitHub UI
 
    - The version is already set from the test deployment
-   - Add the same version label for tracking
+   - No version label is needed on this PR; version labels are only required on PRs into `test`
    - Wait for PR checks to pass
    - Get review and approval
 

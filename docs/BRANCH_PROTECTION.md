@@ -170,40 +170,18 @@ The test and main rulesets have **no bypass** configured, ensuring PR requiremen
 
 For automated version bumping to work, GitHub Actions needs permission to push directly to the `test` branch.
 
-### Configure Ruleset Bypass (Simple & Recommended)
+### Configure Deploy Keys Bypass
 
 1. Go to **Settings** → **Rules** → **Rulesets**
 2. Click on **test-branch-protection** ruleset
 3. Scroll down to **Bypass list** section
 4. Click **Add bypass**
-5. Select **Deploy keys** from the options
+5. Select **Deploy keys**
 6. Click **Save changes**
 
-That's it! The default `GITHUB_TOKEN` used by workflows will now be able to bypass the PR requirement for pushing version bumps.
+That's it! The standard `GITHUB_TOKEN` used by workflows can now bypass the PR requirement for pushing version bumps.
 
-**Why Deploy Keys?** When you add "Deploy keys" to the bypass list, it allows repository-level tokens (like `GITHUB_TOKEN` used by GitHub Actions) to bypass branch protection rules.
-
-### Alternative: Personal Access Token (Not Recommended)
-
-Only use this if the above doesn't work:
-
-1. **Create PAT (Classic)**:
-
-   - Go to **GitHub Settings** (your profile) → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
-   - Click **Generate new token (classic)**
-   - Name: `Repo Automation Token`
-   - Expiration: 90 days
-   - Scopes: ✅ `repo` (full control), ✅ `workflow`
-   - Click **Generate token** and copy it
-
-2. **Add as repository secret**:
-   - Go to repository **Settings** → **Secrets and variables** → **Actions**
-   - Click **New repository secret**
-   - Name: `PAT_TOKEN`
-   - Value: (paste your token)
-   - Click **Add secret**
-
-The workflow is already configured to use `PAT_TOKEN` if it exists, otherwise it falls back to `GITHUB_TOKEN`.
+**Why this works:** Adding "Deploy keys" to the bypass list allows repository-level automation tokens (like `GITHUB_TOKEN`) to bypass branch protection rules without requiring a Personal Access Token.
 
 ---
 

@@ -23,7 +23,7 @@ jobs:
         id: check_skip
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if [[ "$COMMIT_MSG" =~ \[skip\ ci\]|\[ci\ skip\]|^chore:\ bump\ version|^chore\(release\): ]]; then
+          if [[ "$COMMIT_MSG" =~ \[skip ci\]|\[ci skip\]|^chore: bump version|^chore\(release\): ]]; then
             echo "should_skip=true" >> $GITHUB_OUTPUT
             echo "✓ Skipping tests - version bump or [skip ci] commit"
           else
@@ -53,13 +53,13 @@ jobs:
         run: npm run test:ci
 
   # Build and deploy only after tests pass and only on push to test (not on PRs)
-  # Version bumping uses GITHUB_TOKEN with Deploy keys bypass configured in ruleset
+  # Version bumping uses GITHUB_TOKEN with Deploy Keys bypass configured in test ruleset
   build-and-deploy:
     needs: test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Needed to push version tags
+      contents: write # Needed to push version bump commits and tags
     environment:
       name: test
       url: https://boelslund-planwell-finance-dev.web.app
@@ -68,7 +68,7 @@ jobs:
         id: check_skip
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if [[ "$COMMIT_MSG" =~ \[skip\ ci\]|\[ci\ skip\]|^chore:\ bump\ version|^chore\(release\): ]]; then
+          if [[ "$COMMIT_MSG" =~ \[skip ci\]|\[ci skip\]|^chore: bump version|^chore\(release\): ]]; then
             echo "should_skip=true" >> $GITHUB_OUTPUT
             echo "✓ Skipping deployment - version bump or [skip ci] commit"
           else
