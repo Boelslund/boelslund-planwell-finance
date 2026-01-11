@@ -131,7 +131,19 @@ jobs:
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             # Calculate next version (increments from current state in package.json)
-            NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version | sed 's/^v//')
+            NEW_VERSION=$(npm version "$BUMP_TYPE" --no-git-tag-version 2>/tmp/npm_version_error.log | sed 's/^v//') || {
+              echo "Error: 'npm version' command failed for bump type '$BUMP_TYPE'."
+              echo "npm version stderr output:"
+              cat /tmp/npm_version_error.log || true
+              rm -f /tmp/npm_version_error.log
+              exit 1
+            }
+            rm -f /tmp/npm_version_error.log
+            # Validate that NEW_VERSION looks like a semantic version (e.g., 1.2.3, optionally with pre-release/build)
+            if ! echo "$NEW_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([\-+][0-9A-Za-z\.-]+)?$'; then
+              echo "Error: npm version produced an invalid or unexpected version string: '$NEW_VERSION'"
+              exit 1
+            fi
             
             # Check if tag already exists locally
             if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
@@ -159,7 +171,7 @@ jobs:
                 
                 # Check if push failed due to tag/ref already existing (likely race condition)
                 # This is a best-effort check; we primarily rely on exit code with --atomic
-                if grep -qiE "(already exists|updates were rejected|reference already exists)" /tmp/push_output.txt; then
+                if grep -qiE "(already exists|updates were rejected|reference already exists|fetch first|non-fast-forward|tag.*exists)" /tmp/push_output.txt; then
                   echo "Race condition detected: Tag v$NEW_VERSION was created remotely during our attempt"
                   echo "Retrying with next ${BUMP_TYPE} version..."
                   # Undo the local commit and tag, but keep the version bump in package.json
@@ -188,6 +200,7 @@ jobs:
             # Clean up: Reset package files to their original state
             git restore package.json package-lock.json
             echo "Reset package.json and package-lock.json to original state"
+            rm -f /tmp/push_output.txt
             exit 1
           fi
 
