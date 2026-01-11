@@ -48,3 +48,11 @@ updates:
       - "version:patch"
     commit-message:
       prefix: "chore(actions)"
+    # Group GitHub Actions updates together to reduce PR noise
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
