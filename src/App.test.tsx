@@ -33,31 +33,24 @@ describe('App Component', () => {
     expect(document.body).toBeTruthy()
   })
 
-  it('should redirect to login when not authenticated', async () => {
+  it('should render Home page when not authenticated', async () => {
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /log in/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /welcome to planwell finance/i })).toBeInTheDocument()
     }, { timeout: 500 })
   })
 
-  it('should render login form when not authenticated', async () => {
+  it('should show header with sign in/sign up links when not authenticated', async () => {
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /boelslund planwell finance/i })).toBeInTheDocument()
     }, { timeout: 500 })
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
-  })
-
-  it('should provide navigation to register page from login', async () => {
-    render(<App />)
-
-    await waitFor(() => {
-      expect(screen.getByText(/don't have an account/i)).toBeInTheDocument()
-    }, { timeout: 500 })
-    expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument()
+    const signInLinks = screen.getAllByRole('link', { name: /sign in/i })
+    const signUpLinks = screen.getAllByRole('link', { name: /sign up/i })
+    expect(signInLinks.length).toBeGreaterThan(0)
+    expect(signUpLinks.length).toBeGreaterThan(0)
   })
 
   it('should render the AuthProvider', () => {
@@ -70,7 +63,7 @@ describe('App Component', () => {
     expect(container).toBeTruthy()
   })
 
-  it('should render Home page when authenticated', async () => {
+  it('should render Dashboard page when navigating to /dashboard and authenticated', async () => {
     const { onAuthStateChanged } = await import('firebase/auth')
 
     // Mock authenticated user
@@ -81,11 +74,13 @@ describe('App Component', () => {
       return vi.fn()
     })
 
+    // Use window.location to navigate to /dashboard
+    window.history.pushState({}, 'Dashboard', '/dashboard')
+
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /boelslund planwell finance/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
     }, { timeout: 500 })
-    expect(screen.getByText(/welcome! you are logged in/i)).toBeInTheDocument()
   })
 })

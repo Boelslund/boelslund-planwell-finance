@@ -12,10 +12,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run",
-    "test:ci": "vitest run --coverage",
+    "test:run": "vitest --run",
+    "test:ci": "vitest --run --coverage",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "firebase": "^12.7.0",
