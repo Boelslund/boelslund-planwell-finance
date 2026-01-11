@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ProtectedRoute } from './ProtectedRoute';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import type { User } from 'firebase/auth';
 
 // Mock the useAuth hook
-vi.mock('../contexts/AuthContext', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
     useAuth: vi.fn(),
 }));
 
@@ -61,7 +61,7 @@ describe('ProtectedRoute Component', () => {
     });
 
     describe('Unauthenticated Access', () => {
-        it('should redirect to login when user is not authenticated', () => {
+        it('should redirect to home page when user is not authenticated', () => {
             vi.mocked(useAuth).mockReturnValue({
                 user: null,
                 loading: false,
@@ -76,7 +76,7 @@ describe('ProtectedRoute Component', () => {
                 </ProtectedRoute>
             );
 
-            expect(screen.getByTestId('navigate')).toHaveTextContent('/login');
+            expect(screen.getByTestId('navigate')).toHaveTextContent('/');
             expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
         });
 
@@ -201,7 +201,7 @@ describe('ProtectedRoute Component', () => {
                 </ProtectedRoute>
             );
 
-            expect(screen.getByTestId('navigate')).toHaveTextContent('/login');
+            expect(screen.getByTestId('navigate')).toHaveTextContent('/');
         });
     });
 

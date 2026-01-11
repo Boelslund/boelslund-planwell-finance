@@ -1,8 +1,8 @@
 import { FormEvent, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
-export function Login() {
+export function SignIn() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState({ email: "", password: "" });
@@ -65,7 +65,7 @@ export function Login() {
 
     return (
         <div>
-            <h1>Log In</h1>
+            <h1>Sign In</h1>
             <form onSubmit={handleSubmit}>
                 <label htmlFor="email">Email</label>
                 <input
@@ -90,10 +90,10 @@ export function Login() {
                 {authError && <div style={{ color: 'red' }}>{authError}</div>}
 
                 <button type="submit" disabled={loading}>
-                    {loading ? "Signing In..." : "Log In"}
+                    {loading ? "Signing In..." : "Sign In"}
                 </button>
             </form>
-            <Link to="/register">Don't have an account? Sign Up</Link>
+            <Link to="/signup">Don't have an account? Sign Up</Link>
         </div>
     );
 }

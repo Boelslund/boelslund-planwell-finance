@@ -1,17 +1,18 @@
 import './App.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
-import { Login } from './components/Login'
-import { Register } from './components/Register'
-import { ProtectedRoute } from './components/ProtectedRoute'
+import { SignIn } from './components/auth/SignIn'
+import { SignUp } from './components/auth/SignUp'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { Layout } from './components/layout/Layout'
+import { Privacy } from './components/legal/Privacy'
+import { Terms } from './components/legal/Terms'
+import { Support } from './components/legal/Support'
+import { Home } from './pages/Home'
+import { Dashboard } from './pages/Dashboard'
 
-function Home() {
-  return (
-    <div>
-      <h1>Boelslund PlanWell Finance</h1>
-      <p>Welcome! You are logged in.</p>
-    </div>
-  )
+function LayoutWrapper() {
+  return <Layout><Outlet /></Layout>
 }
 
 function App() {
@@ -19,16 +20,15 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
+          <Route element={<LayoutWrapper />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -1,0 +1,82 @@
+/* 
+ * Footer Component Styles
+ * 
+ * Naming Convention: BEM-inspired with component prefix
+ * Format: .footer-{element}-{modifier}
+ * 
+ * Rationale:
+ * - "footer" prefix: Groups all footer-related styles together, easy to find
+ * - Descriptive element names: Clearly indicates purpose (e.g., "container", "links")
+ * - Predictable hierarchy: Parent-child relationships visible in class names
+ * - No deep nesting: Flat structure for better maintainability
+ */
+
+/* Main footer container */
+.footer {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    padding: 2rem 1rem;
+    margin-top: auto;
+    border-top: 1px solid #333;
+}
+
+/* Inner container for content layout and max-width */
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Flex container for footer content */
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Copyright text */
+.footer-copyright {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #999;
+}
+
+/* Navigation links container */
+.footer-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Individual footer link */
+.footer-link {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: #4a90e2;
+    text-decoration: underline;
+}
+
+.footer-link:focus {
+    outline: 2px solid #4a90e2;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Responsive design for larger screens */
+@media (min-width: 768px) {
+    .footer-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .footer-links {
+        justify-content: flex-end;
+    }
+}

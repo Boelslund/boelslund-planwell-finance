@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Login } from './Login';
-import { useAuth } from '../contexts/AuthContext';
+import { SignIn } from './SignIn';
+import { useAuth } from '../../contexts/AuthContext';
 import type { User } from 'firebase/auth';
 import { ReactNode } from 'react';
 
 // Mock the useAuth hook
-vi.mock('../contexts/AuthContext', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
     useAuth: vi.fn(),
 }));
 
@@ -20,7 +20,7 @@ vi.mock('react-router-dom', () => ({
     ),
 }));
 
-describe('Login Component', () => {
+describe('SignIn Component', () => {
     const mockSignIn = vi.fn();
 
     beforeEach(() => {
@@ -35,8 +35,8 @@ describe('Login Component', () => {
     });
 
     describe('Rendering', () => {
-        it('should render login form with all required fields', () => {
-            render(<Login />);
+        it('should render sign in form with all required fields', () => {
+            render(<SignIn />);
 
             expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
@@ -44,29 +44,29 @@ describe('Login Component', () => {
         });
 
         it('should render email input field', () => {
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             expect(emailInput).toHaveAttribute('type', 'email');
         });
 
         it('should render password input field', () => {
-            render(<Login />);
+            render(<SignIn />);
 
             const passwordInput = screen.getByLabelText(/password/i);
             expect(passwordInput).toHaveAttribute('type', 'password');
         });
 
         it('should have a link to registration page', () => {
-            render(<Login />);
+            render(<SignIn />);
 
             const registerLink = screen.getByText(/sign up|register|create account/i);
             expect(registerLink).toBeInTheDocument();
-            expect(registerLink).toHaveAttribute('href', '/register');
+            expect(registerLink).toHaveAttribute('href', '/signup');
         });
 
         it('should display a heading or title', () => {
-            render(<Login />);
+            render(<SignIn />);
 
             expect(screen.getByRole('heading', { name: /log in|sign in/i })).toBeInTheDocument();
         });
@@ -75,7 +75,7 @@ describe('Login Component', () => {
     describe('Form Validation', () => {
         it('should show error when submitting with empty email', async () => {
             const user = userEvent.setup();
-            render(<Login />);
+            render(<SignIn />);
 
             const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
             await user.click(submitButton);
@@ -88,7 +88,7 @@ describe('Login Component', () => {
 
         it('should show error when submitting with empty password', async () => {
             const user = userEvent.setup();
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             await user.type(emailInput, 'test@example.com');
@@ -105,7 +105,7 @@ describe('Login Component', () => {
         it('should show error for invalid email format', async () => {
             // Note: Browser's type="email" handles format validation,
             // so this test verifies the browser behavior works as expected
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             expect(emailInput).toHaveAttribute('type', 'email');
@@ -115,7 +115,7 @@ describe('Login Component', () => {
         });
 
         it('should not show validation errors initially', () => {
-            render(<Login />);
+            render(<SignIn />);
 
             expect(screen.queryByText(/email is required/i)).not.toBeInTheDocument();
             expect(screen.queryByText(/password is required/i)).not.toBeInTheDocument();
@@ -127,7 +127,7 @@ describe('Login Component', () => {
             const user = userEvent.setup();
             mockSignIn.mockResolvedValue(undefined);
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -143,11 +143,11 @@ describe('Login Component', () => {
             });
         });
 
-        it('should navigate to home page after successful login', async () => {
+        it('should navigate to home page after successful sign in', async () => {
             const user = userEvent.setup();
             mockSignIn.mockResolvedValue(undefined);
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -173,7 +173,7 @@ describe('Login Component', () => {
             });
             mockSignIn.mockReturnValue(signInPromise);
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -197,7 +197,7 @@ describe('Login Component', () => {
             });
             mockSignIn.mockReturnValue(signInPromise);
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -222,7 +222,7 @@ describe('Login Component', () => {
                 message: 'Wrong password',
             });
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -245,7 +245,7 @@ describe('Login Component', () => {
                 message: 'User not found',
             });
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -268,7 +268,7 @@ describe('Login Component', () => {
                 message: 'Invalid credentials',
             });
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -291,7 +291,7 @@ describe('Login Component', () => {
                 message: 'Something went wrong',
             });
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -314,7 +314,7 @@ describe('Login Component', () => {
                 message: 'Wrong password',
             });
 
-            render(<Login />);
+            render(<SignIn />);
 
             const emailInput = screen.getByLabelText(/email/i);
             const passwordInput = screen.getByLabelText(/password/i);
@@ -356,9 +356,10 @@ describe('Login Component', () => {
                 signOut: vi.fn(),
             });
 
-            render(<Login />);
+            render(<SignIn />);
 
             expect(mockNavigate).toHaveBeenCalledWith('/');
         });
     });
 });
+

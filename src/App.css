@@ -1,3 +1,17 @@
+/* 
+ * App Component Styles
+ * 
+ * Naming Convention: BEM-inspired with component prefix
+ * Format: .app-{element}-{modifier}
+ * 
+ * Rationale:
+ * - "app" prefix: Groups all app-level styles together, easy to find
+ * - Descriptive element names: Clearly indicates purpose (e.g., "root", "info")
+ * - Predictable hierarchy: Parent-child relationships visible in class names
+ * - No deep nesting: Flat structure for better maintainability
+ */
+
+/* Root container for app content */
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -5,6 +19,7 @@
   text-align: center;
 }
 
+/* Information section */
 .info {
   margin-top: 2rem;
   padding: 1.5rem;

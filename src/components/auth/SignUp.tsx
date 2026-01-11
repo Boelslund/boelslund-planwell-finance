@@ -1,9 +1,9 @@
 import { FormEvent, useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserProfile } from "../services/userProfile";
+import { createUserProfile } from "../../services/userProfile";
 
-export function Register() {
+export function SignUp() {
     const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -160,7 +160,7 @@ export function Register() {
                     {loading ? "Signing Up..." : "Sign Up"}
                 </button>
             </form>
-            <Link to="/login">Already have an account? Log In</Link>
+            <Link to="/signin">Already have an account? Sign In</Link>
         </div>
     );
 }

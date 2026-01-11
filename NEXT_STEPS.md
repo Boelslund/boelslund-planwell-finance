@@ -43,7 +43,7 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 - [x] Auto-login on page refresh (via onAuthStateChanged)
 - [x] Logout functionality (signOut implemented in AuthContext)
 - [ ] Password reset flow (email link)
-- [ ] Email verification (optional for MVP)
+- [ ] Email verification
 
 ### 1.4 User Profile
 
@@ -53,16 +53,50 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 - [-] Create default budget on first login (moved to Phase 2)
 - [ ] User settings/preferences structure
 
-### 1.5 App Layout & Navigation (after auth complete)
+### 1.5 App Layout & Navigation
 
-- [ ] Create app layout structure with header/navigation
-- [ ] Create Header/TopBar component with user info
-  - [ ] Display user email/name
-  - [ ] Profile picture placeholder/avatar
-  - [ ] User menu dropdown with logout button
-  - [ ] Redirect to login page after logout
+- [x] Create app layout structure with header/navigation
+- [x] Create Layout component with Header and Footer
+- [x] Create Header/TopBar component with user info
+  - [x] Display user email/name
+  - [x] Profile picture placeholder/avatar
+  - [x] User menu dropdown with logout button
+  - [x] Redirect to landing page after logout
+- [x] Create Navigation component
+  - [x] Mobile-responsive navigation menu
+  - [x] Menu toggle button
+  - [x] Conditional links (authenticated/unauthenticated users)
+- [x] Create Footer component
+  - [x] Copyright information
+  - [x] Footer links (Privacy, Terms, Contact)
+- [x] Create useMenu custom hook for menu management
+- [x] Write unit tests for Header component
+- [x] Write unit tests for Footer component
+- [x] Write unit tests for Navigation component
 
-### ✅ Phase 1 Testing Gate
+### 1.6 Additional Pages & Routes
+
+- [x] Create Privacy Policy page
+- [x] Create Terms of Service page
+- [x] Create Support/Contact page
+- [x] Fix Footer link to Support page (was /contact, now /support)
+- [x] Create unit test for Layout component
+- [x] Create Loading component with spinner
+- [x] Integrate Loading component into Home component
+- [x] Add accessibility attributes to Loading component (aria-live, role)
+- [x] Support reduced-motion preference in Loading spinner
+- [x] Add integration test for Layout wrapper with routing (App.test.tsx)
+- [x] Add accessibility tests for navigation keyboard controls
+  - [x] Navigation Escape key test
+  - [x] Header keyboard navigation tests (Enter, Escape)
+- [x] Verify CSS/styling is complete for all layout components
+  - [x] Header.css
+  - [x] Footer.css
+  - [x] Navigation.css
+  - [x] Layout.css
+  - [x] Loading.css
+
+### Phase 1 Testing Gate
 
 **Manual Testing Required Before Merging to Main:**
 
@@ -105,6 +139,13 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 - [ ] Tab navigation works correctly
 - [ ] Loading states display properly
 - [ ] Success/error messages are visible and clear
+- [ ] Responsive design testing:
+  - [ ] Mobile (320px-767px): Navigation hamburger menu works, content readable, forms usable
+  - [ ] Tablet (768px-1023px): Layout adjusts properly, navigation transitions correctly
+  - [ ] Desktop (1024px+): Full navigation visible, optimal spacing and layout
+  - [ ] Test navigation menu toggle on mobile viewport
+  - [ ] Verify no horizontal scroll at any breakpoint
+  - [ ] Check header user menu displays correctly at all sizes
 
 **🚫 Do not proceed to Phase 2 until all Phase 1 tests pass**
 

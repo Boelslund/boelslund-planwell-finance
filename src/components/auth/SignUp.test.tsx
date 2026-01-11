@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Register } from './Register';
-import { useAuth } from '../contexts/AuthContext';
-import { createUserProfile } from '../services/userProfile';
+import { SignUp } from './SignUp';
+import { useAuth } from '../../contexts/AuthContext';
+import { createUserProfile } from '../../services/userProfile';
 import type { User } from 'firebase/auth';
 import { ReactNode } from 'react';
 
 // Mock the useAuth hook
-vi.mock('../contexts/AuthContext', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
     useAuth: vi.fn(),
 }));
 
 // Mock userProfile service
-vi.mock('../services/userProfile', () => ({
+vi.mock('../../services/userProfile', () => ({
     createUserProfile: vi.fn(),
 }));
 
@@ -26,7 +26,7 @@ vi.mock('react-router-dom', () => ({
     ),
 }));
 
-describe('Register Component', () => {
+describe('SignUp Component', () => {
     const mockSignUp = vi.fn();
     const mockCreateUserProfile = vi.mocked(createUserProfile);
 
@@ -43,7 +43,7 @@ describe('Register Component', () => {
 
     describe('Rendering', () => {
         it('should render registration form with all required fields', () => {
-            render(<Register />);
+            render(<SignUp />);
 
             expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
@@ -53,14 +53,14 @@ describe('Register Component', () => {
         });
 
         it('should render email input field with correct type', () => {
-            render(<Register />);
+            render(<SignUp />);
 
             const emailInput = screen.getByLabelText(/email/i);
             expect(emailInput).toHaveAttribute('type', 'email');
         });
 
         it('should render password input fields with correct type', () => {
-            render(<Register />);
+            render(<SignUp />);
 
             const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
@@ -70,15 +70,15 @@ describe('Register Component', () => {
         });
 
         it('should have a link to login page', () => {
-            render(<Register />);
+            render(<SignUp />);
 
             const loginLink = screen.getByText(/log in|sign in|already have an account/i);
             expect(loginLink).toBeInTheDocument();
-            expect(loginLink).toHaveAttribute('href', '/login');
+            expect(loginLink).toHaveAttribute('href', '/signin');
         });
 
         it('should display a heading or title', () => {
-            render(<Register />);
+            render(<SignUp />);
 
             expect(screen.getByRole('heading', { name: /sign up|register|create account/i })).toBeInTheDocument();
         });
@@ -87,7 +87,7 @@ describe('Register Component', () => {
     describe('Form Validation', () => {
         it('should show error when submitting with empty name', async () => {
             const user = userEvent.setup();
-            render(<Register />);
+            render(<SignUp />);
 
             const submitButton = screen.getByRole('button', { name: /sign up|register/i });
             await user.click(submitButton);
@@ -100,7 +100,7 @@ describe('Register Component', () => {
 
         it('should show error when submitting with empty email', async () => {
             const user = userEvent.setup();
-            render(<Register />);
+            render(<SignUp />);
 
             const submitButton = screen.getByRole('button', { name: /sign up|register/i });
             await user.click(submitButton);
@@ -113,7 +113,7 @@ describe('Register Component', () => {
 
         it('should show error when submitting with empty password', async () => {
             const user = userEvent.setup();
-            render(<Register />);
+            render(<SignUp />);
 
             const emailInput = screen.getByLabelText(/email/i);
             await user.type(emailInput, 'test@example.com');
@@ -129,7 +129,7 @@ describe('Register Component', () => {
 
         it('should show error when submitting with empty confirm password', async () => {
             const user = userEvent.setup();
-            render(<Register />);
+            render(<SignUp />);
 
             const emailInput = screen.getByLabelText(/email/i);
             await user.type(emailInput, 'test@example.com');
@@ -148,7 +148,7 @@ describe('Register Component', () => {
 
         it('should show error when passwords do not match', async () => {
             const user = userEvent.setup();
-            render(<Register />);
+            render(<SignUp />);
 
             const emailInput = screen.getByLabelText(/email/i);
             await user.type(emailInput, 'test@example.com');
@@ -170,7 +170,7 @@ describe('Register Component', () => {
 
         it('should show error when password is too short', async () => {
             const user = userEvent.setup();
-            render(<Register />);
+            render(<SignUp />);
 
             const emailInput = screen.getByLabelText(/email/i);
             await user.type(emailInput, 'test@example.com');
@@ -191,7 +191,7 @@ describe('Register Component', () => {
         });
 
         it('should not show validation errors initially', () => {
-            render(<Register />);
+            render(<SignUp />);
 
             expect(screen.queryByText(/email is required/i)).not.toBeInTheDocument();
             expect(screen.queryByText(/password is required/i)).not.toBeInTheDocument();
@@ -207,7 +207,7 @@ describe('Register Component', () => {
             };
             mockSignUp.mockResolvedValue(mockUserCredential);
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -229,13 +229,13 @@ describe('Register Component', () => {
 
         it('should create user profile after successful registration', async () => {
             const user = userEvent.setup();
-            const { createUserProfile } = await import('../services/userProfile');
+            const { createUserProfile } = await import('../../services/userProfile');
             const mockUserCredential = {
                 user: { uid: 'test-uid-123', email: 'newuser@example.com' } as User
             };
             mockSignUp.mockResolvedValue(mockUserCredential);
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -262,7 +262,7 @@ describe('Register Component', () => {
             };
             mockSignUp.mockResolvedValue(mockUserCredential);
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -293,7 +293,7 @@ describe('Register Component', () => {
             });
             mockSignUp.mockReturnValue(signUpPromise);
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -323,7 +323,7 @@ describe('Register Component', () => {
             });
             mockSignUp.mockReturnValue(signUpPromise);
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -354,7 +354,7 @@ describe('Register Component', () => {
                 message: 'Email already in use',
             });
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -381,7 +381,7 @@ describe('Register Component', () => {
                 message: 'Weak password',
             });
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -408,7 +408,7 @@ describe('Register Component', () => {
                 message: 'Invalid email',
             });
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -435,7 +435,7 @@ describe('Register Component', () => {
                 message: 'Something went wrong',
             });
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -466,7 +466,7 @@ describe('Register Component', () => {
                 message: 'Missing or insufficient permissions',
             });
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -496,7 +496,7 @@ describe('Register Component', () => {
                 message: 'Email already in use',
             });
 
-            render(<Register />);
+            render(<SignUp />);
 
             const displayNameInput = screen.getByLabelText(/name/i);
             const emailInput = screen.getByLabelText(/email/i);
@@ -545,10 +545,11 @@ describe('Register Component', () => {
                 signOut: vi.fn(),
             });
 
-            render(<Register />);
+            render(<SignUp />);
 
             expect(mockNavigate).toHaveBeenCalledWith('/');
         });
     });
 });
+
 

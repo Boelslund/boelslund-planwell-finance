@@ -1,0 +1,165 @@
+/* 
+ * Navigation Component Styles
+ * 
+ * Naming Convention: BEM-inspired with component prefix
+ * Format: .navigation-{element}-{modifier}
+ * 
+ * Rationale:
+ * - "navigation" prefix: Groups all navigation-related styles together, easy to find
+ * - Descriptive element names: Clearly indicates purpose (e.g., "menu", "link", "toggle")
+ * - Predictable hierarchy: Parent-child relationships visible in class names
+ * - No deep nesting: Flat structure for better maintainability
+ */
+
+/* Main navigation container */
+.navigation {
+  position: relative;
+}
+
+/* Mobile menu toggle button */
+.navigation-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+}
+
+/* Hamburger icon bars */
+.navigation-toggle-icon {
+  display: block;
+  width: 24px;
+  height: 3px;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.navigation-menu-toggle:hover .navigation-toggle-icon {
+  background-color: #4a90e2;
+}
+
+.navigation-menu-toggle:focus {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+/* Navigation menu list */
+.navigation-menu {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1.5rem;
+}
+
+/* Individual navigation item */
+.navigation-item {
+  margin: 0;
+}
+
+/* Navigation link styling */
+.navigation-link {
+  color: #fff;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  display: block;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.navigation-link:hover {
+  background-color: rgba(74, 144, 226, 0.1);
+  color: #4a90e2;
+}
+
+.navigation-link:focus {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+.navigation-link.active {
+  background-color: #4a90e2;
+  color: #fff;
+}
+
+.navigation-link.active:hover {
+  background-color: #357abd;
+}
+
+/* Responsive design for mobile devices */
+@media (max-width: 768px) {
+  .navigation-menu-toggle {
+    display: flex;
+  }
+
+  .navigation-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #1a1a1a;
+    flex-direction: column;
+    gap: 0;
+    min-width: 200px;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    margin-top: 0.5rem;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+
+  .navigation-menu.open {
+    max-height: 500px;
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .navigation-item {
+    border-bottom: 1px solid #333;
+  }
+
+  .navigation-item:last-child {
+    border-bottom: none;
+  }
+
+  .navigation-link {
+    padding: 1rem 1.5rem;
+    border-radius: 0;
+  }
+}
+
+/* Responsive design for tablet and larger screens */
+@media (min-width: 769px) {
+  .navigation-menu-toggle {
+    display: none !important;
+  }
+
+  .navigation-menu {
+    display: flex !important;
+    position: static;
+    background-color: transparent;
+    box-shadow: none;
+    max-height: none;
+    opacity: 1;
+    pointer-events: all;
+    align-items: center;
+  }
+}
+
+/* Keyboard accessibility focus styles */
+.navigation-link:focus-visible {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+.navigation-menu-toggle:focus-visible {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
