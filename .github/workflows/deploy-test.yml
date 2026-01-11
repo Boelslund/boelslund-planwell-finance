@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - test
+  pull_request:
+    branches:
+      - test
 
 permissions:
   contents: read
@@ -49,10 +52,11 @@ jobs:
         if: steps.check_skip.outputs.should_skip != 'true'
         run: npm run test:ci
 
-  # Build and deploy only after tests pass
+  # Build and deploy only after tests pass and only on push to test (not on PRs)
   # Version bumping uses GITHUB_TOKEN with Deploy keys bypass configured in ruleset
   build-and-deploy:
     needs: test
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write # Needed to push version tags
