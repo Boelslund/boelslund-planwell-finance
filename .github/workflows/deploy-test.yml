@@ -110,25 +110,37 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Get current version and calculate next version
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
           BUMP_TYPE="${{ steps.version.outputs.bump }}"
 
-          # Calculate what the new version would be
-          NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version | sed 's/^v//')
+          # Keep bumping until we find a version that doesn't exist
+          MAX_ATTEMPTS=10
+          ATTEMPT=0
 
-          # Check if tag already exists
-          if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
-            echo "Tag v$NEW_VERSION already exists. Skipping version bump."
-            # Reset package.json to original version
-            git checkout -- package.json package-lock.json
-          else
-            echo "Creating new version: v$NEW_VERSION"
-            # Commit and tag the version bump
-            git add package.json package-lock.json
-            git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
-            git tag -a "v$NEW_VERSION" -m "chore: bump version to $NEW_VERSION [skip ci]"
-            git push --follow-tags
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            # Calculate next version
+            NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version | sed 's/^v//')
+            
+            # Check if tag already exists
+            if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
+              echo "Tag v$NEW_VERSION already exists, trying next patch version..."
+              # Reset and try next patch version
+              git checkout -- package.json package-lock.json
+              BUMP_TYPE="patch"
+              ATTEMPT=$((ATTEMPT + 1))
+            else
+              echo "Creating new version: v$NEW_VERSION"
+              # Commit and tag the version bump
+              git add package.json package-lock.json
+              git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+              git tag -a "v$NEW_VERSION" -m "chore: bump version to $NEW_VERSION [skip ci]"
+              git push --follow-tags
+              break
+            fi
+          done
+
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "Error: Could not find available version tag after $MAX_ATTEMPTS attempts"
+            exit 1
           fi
 
       - name: Build
