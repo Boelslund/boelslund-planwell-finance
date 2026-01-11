@@ -42,6 +42,13 @@ jobs:
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
+    env:
+      # Maximum attempts to find an available version tag before failing
+      # Default: 50 attempts should handle most collision scenarios
+      # - Accounts for concurrent workflow runs
+      # - Provides buffer for race conditions and retries
+      # - Can be adjusted if your deployment frequency requires more attempts
+      VERSION_MAX_ATTEMPTS: 50
     permissions:
       # Escalate to 'write' to allow automated version bumping and tag pushing
       # This job commits package.json changes and pushes version tags
@@ -111,21 +118,23 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           BUMP_TYPE="${{ steps.version.outputs.bump }}"
+          ORIGINAL_BUMP_TYPE="$BUMP_TYPE"
 
           # Keep bumping until we find a version that doesn't exist
-          MAX_ATTEMPTS=10
+          MAX_ATTEMPTS="${VERSION_MAX_ATTEMPTS:-50}"
           ATTEMPT=0
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             # Calculate next version
             NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version | sed 's/^v//')
             
-            # Check if tag already exists
+            # Check if tag already exists locally
             if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
-              echo "Tag v$NEW_VERSION already exists, trying next patch version..."
-              # Reset and try next patch version
+              echo "Tag v$NEW_VERSION already exists locally, trying next ${ORIGINAL_BUMP_TYPE} version..."
+              # Reset and try again with the original bump type
+              # This preserves the original semantic intent (major/minor/patch)
               git checkout -- package.json package-lock.json
-              BUMP_TYPE="patch"
+              BUMP_TYPE="$ORIGINAL_BUMP_TYPE"
               ATTEMPT=$((ATTEMPT + 1))
             else
               echo "Creating new version: v$NEW_VERSION"
@@ -133,13 +142,38 @@ jobs:
               git add package.json package-lock.json
               git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
               git tag -a "v$NEW_VERSION" -m "chore: bump version to $NEW_VERSION [skip ci]"
-              git push --follow-tags
-              break
+              
+              # Attempt to push with error handling for race conditions
+              if git push --follow-tags 2>&1 | tee /tmp/push_output.txt; then
+                echo "Successfully pushed version v$NEW_VERSION"
+                break
+              else
+                # Check if push failed due to tag already existing (race condition)
+                if grep -q "tag.*already exists\|Updates were rejected" /tmp/push_output.txt; then
+                  echo "Race condition detected: Tag v$NEW_VERSION was created remotely during our attempt"
+                  echo "Resetting and retrying with next ${ORIGINAL_BUMP_TYPE} version..."
+                  # Undo the local commit and tag
+                  git tag -d "v$NEW_VERSION"
+                  git reset --hard HEAD~1
+                  # Fetch latest tags from remote
+                  git fetch --tags
+                  BUMP_TYPE="$ORIGINAL_BUMP_TYPE"
+                  ATTEMPT=$((ATTEMPT + 1))
+                else
+                  # Different error, fail immediately
+                  echo "Error: Push failed for unexpected reason"
+                  cat /tmp/push_output.txt
+                  exit 1
+                fi
+              fi
             fi
           done
 
           if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
             echo "Error: Could not find available version tag after $MAX_ATTEMPTS attempts"
+            # Clean up: Reset package files to their original state
+            git checkout -- package.json package-lock.json
+            echo "Reset package.json and package-lock.json to original state"
             exit 1
           fi
 
