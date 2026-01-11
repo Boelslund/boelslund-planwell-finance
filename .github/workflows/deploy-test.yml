@@ -9,47 +9,44 @@ permissions:
   contents: read
 
 jobs:
-  # Check if we should skip - prevents deploying version bump commits
-  check-skip:
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.check.outputs.should_skip }}
-    steps:
-      - id: check
-        run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if [[ "$COMMIT_MSG" =~ \[skip\ ci\]|\[ci\ skip\]|^chore:\ bump\ version|^chore\(release\): ]]; then
-            echo "should_skip=true" >> $GITHUB_OUTPUT
-            echo "✓ Skipping deployment - version bump or [skip ci] commit"
-          else
-            echo "should_skip=false" >> $GITHUB_OUTPUT
-            echo "✓ Proceeding with deployment"
-          fi
-
-  # Test first: Validate the PR code before any version bumping
-  # This ensures we only bump versions for code that passes all checks
+  # Test job always runs to satisfy required status check
+  # but exits early on version bump commits
   test:
-    needs: check-skip
-    if: needs.check-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
+      - name: Check if should skip
+        id: check_skip
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" =~ \[skip\ ci\]|\[ci\ skip\]|^chore:\ bump\ version|^chore\(release\): ]]; then
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "✓ Skipping tests - version bump or [skip ci] commit"
+          else
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.check_skip.outputs.should_skip != 'true'
 
       - name: Setup Node.js
+        if: steps.check_skip.outputs.should_skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
+        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm ci
 
       - name: Run linter
+        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm run lint
 
       - name: Run tests with coverage
+        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm run test:ci
 
   # Build and deploy only after tests pass
@@ -63,12 +60,25 @@ jobs:
       name: test
       url: https://boelslund-planwell-finance-dev.web.app
     steps:
+      - name: Check if should skip deployment
+        id: check_skip
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" =~ \[skip\ ci\]|\[ci\ skip\]|^chore:\ bump\ version|^chore\(release\): ]]; then
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "✓ Skipping deployment - version bump or [skip ci] commit"
+          else
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.check_skip.outputs.should_skip != 'true'
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get version bump type from merged PR
+        if: steps.check_skip.outputs.should_skip != 'true'
         id: version
         uses: actions/github-script@v7
         with:
@@ -101,16 +111,18 @@ jobs:
             core.info(`Version bump: ${bump}`);
 
       - name: Setup Node.js
+        if: steps.check_skip.outputs.should_skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
+        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm ci
 
       - name: Bump version and push
-        if: steps.version.outputs.should_bump == 'true'
+        if: steps.check_skip.outputs.should_skip != 'true' && steps.version.outputs.should_bump == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -118,6 +130,7 @@ jobs:
           git push --follow-tags
 
       - name: Build
+        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm run build
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
@@ -129,6 +142,7 @@ jobs:
           VITE_FIREBASE_MEASUREMENT_ID: ${{ vars.VITE_FIREBASE_MEASUREMENT_ID }}
 
       - name: Deploy to Firebase Hosting (test)
+        if: steps.check_skip.outputs.should_skip != 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
