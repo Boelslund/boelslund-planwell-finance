@@ -119,6 +119,10 @@ jobs:
 
           BUMP_TYPE="${{ steps.version.outputs.bump }}"
 
+          # Fetch latest tags from remote before checking for collisions
+          # Ensures we detect tags created by concurrent workflows
+          git fetch --tags
+
           # Keep bumping until we find a version that doesn't exist
           # Each iteration increments from the previous attempt, preserving semantic intent
           # Example: 1.0.0 -> major bump -> 2.0.0 (collision) -> 3.0.0 -> 4.0.0, etc.
@@ -144,13 +148,18 @@ jobs:
               git tag -a "v$NEW_VERSION" -m "chore: bump version to $NEW_VERSION [skip ci]"
               
               # Attempt to push with error handling for race conditions
-              if git push --follow-tags 2>&1 | tee /tmp/push_output.txt; then
+              # --atomic ensures all-or-nothing push (both commit and tag succeed or both fail)
+              if git push --atomic --follow-tags 2>&1 | tee /tmp/push_output.txt; then
                 echo "Successfully pushed version v$NEW_VERSION"
                 rm -f /tmp/push_output.txt
                 break
               else
-                # Check if push failed due to tag already existing (race condition)
-                if grep -q "tag.*already exists\|Updates were rejected" /tmp/push_output.txt; then
+                PUSH_EXIT_CODE=$?
+                echo "Push failed with exit code: $PUSH_EXIT_CODE"
+                
+                # Check if push failed due to tag/ref already existing (likely race condition)
+                # This is a best-effort check; we primarily rely on exit code with --atomic
+                if grep -qiE "(already exists|updates were rejected|reference already exists)" /tmp/push_output.txt; then
                   echo "Race condition detected: Tag v$NEW_VERSION was created remotely during our attempt"
                   echo "Retrying with next ${BUMP_TYPE} version..."
                   # Undo the local commit and tag, but keep the version bump in package.json
@@ -164,7 +173,7 @@ jobs:
                   rm -f /tmp/push_output.txt
                   continue
                 else
-                  # Different error, fail immediately
+                  # Different error (permissions, network, etc.), fail immediately
                   echo "Error: Push failed for unexpected reason"
                   cat /tmp/push_output.txt
                   rm -f /tmp/push_output.txt
@@ -177,7 +186,7 @@ jobs:
           if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
             echo "Error: Could not find available version tag after $MAX_ATTEMPTS attempts"
             # Clean up: Reset package files to their original state
-            git checkout -- package.json package-lock.json
+            git restore package.json package-lock.json
             echo "Reset package.json and package-lock.json to original state"
             exit 1
           fi
