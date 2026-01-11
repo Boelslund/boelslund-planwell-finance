@@ -4,17 +4,17 @@ import { Footer } from './Footer'
 import './Layout.css'
 
 interface LayoutProps {
-    children: React.ReactNode
+  children: React.ReactNode
 }
 
 export function Layout({ children }: LayoutProps) {
-    return (
-        <div className="layout-container">
-            <Header />
-            <main className="layout-main">
-                {children}
-            </main>
-            <Footer />
-        </div>
-    )
+  return (
+    <div className="layout-container">
+      <Header />
+      <main className="layout-main">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  )
 }

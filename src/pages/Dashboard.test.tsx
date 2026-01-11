@@ -3,15 +3,15 @@ import { render, screen } from '@testing-library/react'
 import { Dashboard } from './Dashboard'
 
 describe('Dashboard Page', () => {
-    it('should render dashboard heading', () => {
-        render(<Dashboard />)
+  it('should render dashboard heading', () => {
+    render(<Dashboard />)
 
-        expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
-    })
+    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
+  })
 
-    it('should show logged in message', () => {
-        render(<Dashboard />)
+  it('should show logged in message', () => {
+    render(<Dashboard />)
 
-        expect(screen.getByText(/you are logged in/i)).toBeInTheDocument()
-    })
+    expect(screen.getByText(/you are logged in/i)).toBeInTheDocument()
+  })
 })
