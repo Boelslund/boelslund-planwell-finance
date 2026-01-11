@@ -4,129 +4,108 @@ on:
   push:
     branches:
       - test
-  pull_request:
-    branches:
-      - test
 
 permissions:
   contents: read
 
 jobs:
-  # Test job always runs to satisfy required status check
-  # but exits early on version bump commits
+  # Test first: Validate the PR code before any version bumping
+  # This ensures we only bump versions for code that passes all checks
   test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Check if should skip
-        id: check_skip
-        run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if [[ "$COMMIT_MSG" =~ \[skip ci\]|\[ci skip\]|^chore: bump version|^chore\(release\): ]]; then
-            echo "should_skip=true" >> $GITHUB_OUTPUT
-            echo "✓ Skipping tests - version bump or [skip ci] commit"
-          else
-            echo "should_skip=false" >> $GITHUB_OUTPUT
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.check_skip.outputs.should_skip != 'true'
 
       - name: Setup Node.js
-        if: steps.check_skip.outputs.should_skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
-        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm ci
 
       - name: Run linter
-        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm run lint
 
       - name: Run tests with coverage
-        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm run test:ci
 
-  # Build and deploy only after tests pass and only on push to test (not on PRs)
-  # Version bumping uses GITHUB_TOKEN with Deploy Keys bypass configured in test ruleset
+  # Build and deploy only after tests pass
+  # Version bump happens here (not before tests) because:
+  # - We want to test the actual PR code, not code + version change
+  # - If tests fail, no version bump occurs (fail-safe)
+  # - Version bump only changes metadata (package.json version number)
+  # - The deployed build and git tag both use the bumped version
   build-and-deploy:
     needs: test
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Needed to push version bump commits and tags
+      # Escalate to 'write' to allow automated version bumping and tag pushing
+      # This job commits package.json changes and pushes version tags
+      contents: write
     environment:
       name: test
       url: https://boelslund-planwell-finance-dev.web.app
     steps:
-      - name: Check if should skip deployment
-        id: check_skip
-        run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if [[ "$COMMIT_MSG" =~ \[skip ci\]|\[ci skip\]|^chore: bump version|^chore\(release\): ]]; then
-            echo "should_skip=true" >> $GITHUB_OUTPUT
-            echo "✓ Skipping deployment - version bump or [skip ci] commit"
-          else
-            echo "should_skip=false" >> $GITHUB_OUTPUT
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.check_skip.outputs.should_skip != 'true'
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get version bump type from merged PR
-        if: steps.check_skip.outputs.should_skip != 'true'
         id: version
         uses: actions/github-script@v7
         with:
           script: |
+            // Get the commit that triggered this workflow
             const commit = context.sha;
+
+            // Find the PR that was merged
             const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
               commit_sha: commit
             });
 
+            // Filter to only merged PRs (exclude open/closed but unmerged PRs)
             const mergedPrs = prs.filter(pr => pr.merged_at !== null);
 
             if (mergedPrs.length === 0) {
-              core.info('No merged PR found - skipping version bump');
-              core.setOutput('should_bump', 'false');
+              core.info(`No merged PR found for commit: ${commit}`);
+              core.warning('No merged PR found for this commit. Using default patch version bump.');
+              core.notice('Direct commits to test branch will default to patch version. Use PRs with version labels for proper semantic versioning.');
+              core.setOutput('bump', 'patch');
               return;
             }
 
             const pr = mergedPrs[0];
             const labels = pr.labels.map(label => label.name);
 
-            let bump = 'patch';
-            if (labels.includes('version:major')) bump = 'major';
-            else if (labels.includes('version:minor')) bump = 'minor';
-            else if (labels.includes('version:patch')) bump = 'patch';
+            let bump = 'patch'; // default
+            if (labels.includes('version:major')) {
+              bump = 'major';
+            } else if (labels.includes('version:minor')) {
+              bump = 'minor';
+            } else if (labels.includes('version:patch')) {
+              bump = 'patch';
+            }
 
             core.setOutput('bump', bump);
-            core.setOutput('should_bump', 'true');
-            core.info(`Version bump: ${bump}`);
+            core.info(`Version bump type from PR: ${bump}`);
 
       - name: Setup Node.js
-        if: steps.check_skip.outputs.should_skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
-        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm ci
 
-      - name: Bump version and push
-        if: steps.check_skip.outputs.should_skip != 'true' && steps.version.outputs.should_bump == 'true'
+      - name: Bump version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -134,7 +113,6 @@ jobs:
           git push --follow-tags
 
       - name: Build
-        if: steps.check_skip.outputs.should_skip != 'true'
         run: npm run build
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
@@ -146,7 +124,6 @@ jobs:
           VITE_FIREBASE_MEASUREMENT_ID: ${{ vars.VITE_FIREBASE_MEASUREMENT_ID }}
 
       - name: Deploy to Firebase Hosting (test)
-        if: steps.check_skip.outputs.should_skip != 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
