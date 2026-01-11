@@ -73,6 +73,7 @@ Comprehensive documentation is available in the [`docs/`](./docs/) folder:
 - **[Environment Setup](./docs/ENVIRONMENT_SETUP.md)** - Complete setup guide
 - **[Contributing](./docs/CONTRIBUTING.md)** - Development workflow
 - **[Testing](./docs/TESTING.md)** - Testing guide and TDD practices
+- **[Versioning](./docs/VERSIONING.md)** - Automated semantic versioning with PR labels
 - **[Architecture](./docs/ARCHITECTURE.md)** - Technical architecture overview
 - **[Firebase](./docs/firebase-lazy-init.md)** - Firebase integration details
 

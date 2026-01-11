@@ -28,6 +28,12 @@ Start here if you're new to the project:
   - Testing patterns and best practices
   - Mocking Firebase services
 
+- **[Versioning Guide](./VERSIONING.md)** - Automated semantic versioning
+  - PR label requirements
+  - Version bump workflow
+  - Semantic versioning rules
+  - Label setup instructions
+
 - **[Architecture Overview](./ARCHITECTURE.md)** - Technical architecture and design decisions
   - Tech stack explanation
   - Project structure
