@@ -140,7 +140,7 @@ jobs:
             }
             rm -f /tmp/npm_version_error.log
             # Validate that NEW_VERSION looks like a semantic version (e.g., 1.2.3, optionally with pre-release/build)
-            if ! echo "$NEW_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([\-+][0-9A-Za-z\.-]+)?$'; then
+            if ! echo "$NEW_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([.+_-][0-9A-Za-z.+_-]*)?$'; then
               echo "Error: npm version produced an invalid or unexpected version string: '$NEW_VERSION'"
               exit 1
             fi
