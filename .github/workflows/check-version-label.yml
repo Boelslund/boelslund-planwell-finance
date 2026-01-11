@@ -1,0 +1,47 @@
+name: Check Version Label
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+    branches:
+      - test
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check-label:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Needed to create comments on PRs
+    steps:
+      - name: Check for version label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map(label => label.name);
+            const versionLabels = ['version:patch', 'version:minor', 'version:major'];
+            const hasVersionLabel = labels.some(label => versionLabels.includes(label));
+
+            if (!hasVersionLabel) {
+              core.setFailed('This PR must have one of the following labels: version:patch, version:minor, or version:major');
+              
+              // Only add a comment when PR is first opened to avoid spam
+              if (context.payload.action === 'opened') {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: '**Version Label Required**\n\nThis PR needs a version label before it can be merged:\n- `version:patch` - Bug fixes (0.1.0 → 0.1.1)\n- `version:minor` - New features (0.1.0 → 0.2.0)\n- `version:major` - Breaking changes (0.1.0 → 1.0.0)\n\nPlease add the appropriate label.'
+                });
+              }
+            } else {
+              const selectedLabel = labels.find(label => versionLabels.includes(label));
+              core.info(`Version label found: ${selectedLabel}`);
+              
+              // Check if multiple version labels exist
+              const versionLabelCount = labels.filter(label => versionLabels.includes(label)).length;
+              if (versionLabelCount > 1) {
+                core.setFailed('Only one version label should be applied to this PR');
+              }
+            }

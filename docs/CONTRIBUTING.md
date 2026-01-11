@@ -226,6 +226,19 @@ npm run lint -- --fix
 - [ ] Added tests for new features
 - [ ] Updated documentation if needed
 - [ ] Commit messages follow conventions
+- [ ] **Version label added** (for PRs to `test` branch)
+
+### Version Labels (Required for `test` branch)
+
+When creating a PR to the `test` branch, you **must** add one of these labels:
+
+- `version:patch` - Bug fixes and minor changes (0.1.0 → 0.1.1)
+- `version:minor` - New features, backward compatible (0.1.0 → 0.2.0)
+- `version:major` - Breaking changes (0.1.0 → 1.0.0)
+
+**The PR will fail checks without a version label.** This ensures proper semantic versioning.
+
+See [VERSIONING.md](./VERSIONING.md) for complete details on version management.
 
 ### PR Description Template
 
