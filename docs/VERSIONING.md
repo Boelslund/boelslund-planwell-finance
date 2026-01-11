@@ -17,17 +17,29 @@ When creating a PR to the `test` branch, you **must** add one of these labels:
 - No version label is present
 - Multiple version labels are present
 
-### 2. Automatic Version Bump
+### 2. Automatic Version Bump on Test
 
 When a PR is merged to the `test` branch:
 
-1. The deployment workflow reads the version label from the merged PR
+1. The deployment workflow detects the version label from the merged PR
 2. Runs `npm version <bump-type>` automatically
-3. Creates a git tag
-4. Pushes the version bump and tag back to the repository
-5. Proceeds with build and deployment
+3. Creates a git tag (e.g., `v0.2.0`)
+4. Pushes the version bump commit and tag to test
+5. The version bump commit uses `[skip ci]` to prevent re-triggering the workflow
+6. Deploys to test environment with the new version
 
-### 3. Semantic Versioning Rules
+**Note:** For this to work with branch protection, you must configure GitHub Actions to bypass the PR requirement. See [BRANCH_PROTECTION.md](BRANCH_PROTECTION.md#allowing-github-actions-to-bypass-branch-protection) for setup instructions.
+
+### 3. Deploying to Production
+
+When deploying from test to main:
+
+1. The version is **already set** on the test branch
+2. Create a PR from `test` to `main`
+3. No version bump happens (version was already bumped on test)
+4. Merge the PR to deploy to production with the test version
+
+### 4. Semantic Versioning Rules
 
 Following [semver](https://semver.org/):
 
@@ -35,7 +47,7 @@ Following [semver](https://semver.org/):
 - **MINOR** (0.1.0): Add functionality in a backward compatible manner
 - **PATCH** (0.0.1): Backward compatible bug fixes
 
-### 4. Pre-1.0.0 Versions
+### 5. Pre-1.0.0 Versions
 
 Before reaching version 1.0.0, the project is considered in initial development:
 
@@ -45,26 +57,70 @@ Before reaching version 1.0.0, the project is considered in initial development:
 
 ## Workflow
 
-### Recommended: Via Pull Request (Preferred)
+### Standard Development Workflow
 
-1. Create a feature branch
-2. Make your changes
+1. Create a feature branch from `test`
+
+   ```bash
+   git checkout test
+   git pull
+   git checkout -b feature/my-feature
+   ```
+
+2. Make your changes and commit
+
 3. Open a PR to `test` branch
-4. **Add the appropriate version label** (`version:patch`, `version:minor`, or `version:major`)
-5. Wait for PR checks to pass
-6. Merge the PR
-7. The version will be automatically bumped and deployed
 
-### Alternative: Direct Commits
+   - **Add the appropriate version label** (`version:patch`, `version:minor`, or `version:major`)
+   - Wait for PR checks to pass
+   - Get review and approval
+   - Merge the PR
 
-If you push directly to the `test` branch (not recommended):
+4. **Automatic version bump**:
+   - Workflow detects the version label from the merged PR
+   - Bumps version automatically (e.g., 0.1.0 → 0.1.1)
+   - Pushes commit with `[skip ci]` to avoid retriggering
+   - Creates git tag (e.g., `v0.1.1`)
+   - Deploys to test environment
 
-- The version will automatically bump as a **patch** version
-- A warning will be logged in the workflow
-- This should only be used for emergency hotfixes or when absolutely necessary
-- You lose the ability to specify major or minor version bumps
+### Production Release Workflow
 
-**Best Practice:** Always use PRs with version labels for proper semantic versioning control.
+1. When ready to release to production, create PR from `test` to `main` via GitHub UI
+
+   - The version is already set from the test deployment
+   - Add the same version label for tracking
+   - Wait for PR checks to pass
+   - Get review and approval
+
+2. Merge the PR
+   - No version bump occurs (already done on test)
+   - Production deployment happens automatically
+
+### Emergency Hotfix
+
+For urgent production fixes:
+
+1. Create hotfix branch from `main`
+
+   ```bash
+   git checkout main
+   git pull
+   git checkout -b hotfix/critical-bug
+   ```
+
+2. Make the fix and commit
+
+3. Open PR to `main` with `version:patch` label
+
+   - Get expedited review
+   - Merge to deploy (version bump happens automatically if configured)
+
+4. After deploying to production, sync `test` with `main`:
+   ```bash
+   git checkout test
+   git merge main
+   git push
+   ```
 
 ## Labels Setup
 

@@ -9,9 +9,28 @@ permissions:
   contents: read
 
 jobs:
+  # Check if we should skip - prevents deploying version bump commits
+  check-skip:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.check.outputs.should_skip }}
+    steps:
+      - id: check
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" =~ \[skip\ ci\]|\[ci\ skip\]|^chore:\ bump\ version|^chore\(release\): ]]; then
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "✓ Skipping deployment - version bump or [skip ci] commit"
+          else
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+            echo "✓ Proceeding with deployment"
+          fi
+
   # Test first: Validate the PR code before any version bumping
   # This ensures we only bump versions for code that passes all checks
   test:
+    needs: check-skip
+    if: needs.check-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -34,18 +53,12 @@ jobs:
         run: npm run test:ci
 
   # Build and deploy only after tests pass
-  # Version bump happens here (not before tests) because:
-  # - We want to test the actual PR code, not code + version change
-  # - If tests fail, no version bump occurs (fail-safe)
-  # - Version bump only changes metadata (package.json version number)
-  # - The deployed build and git tag both use the bumped version
+  # Version bumping uses GITHUB_TOKEN with Deploy keys bypass configured in ruleset
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
     permissions:
-      # Escalate to 'write' to allow automated version bumping and tag pushing
-      # This job commits package.json changes and pushes version tags
-      contents: write
+      contents: write # Needed to push version tags
     environment:
       name: test
       url: https://boelslund-planwell-finance-dev.web.app
@@ -60,41 +73,32 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // Get the commit that triggered this workflow
             const commit = context.sha;
-
-            // Find the PR that was merged
             const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
               commit_sha: commit
             });
 
-            // Filter to only merged PRs (exclude open/closed but unmerged PRs)
             const mergedPrs = prs.filter(pr => pr.merged_at !== null);
 
             if (mergedPrs.length === 0) {
-              core.info(`No merged PR found for commit: ${commit}`);
-              core.warning('No merged PR found for this commit. Using default patch version bump.');
-              core.notice('Direct commits to test branch will default to patch version. Use PRs with version labels for proper semantic versioning.');
-              core.setOutput('bump', 'patch');
+              core.info('No merged PR found - skipping version bump');
+              core.setOutput('should_bump', 'false');
               return;
             }
 
             const pr = mergedPrs[0];
             const labels = pr.labels.map(label => label.name);
 
-            let bump = 'patch'; // default
-            if (labels.includes('version:major')) {
-              bump = 'major';
-            } else if (labels.includes('version:minor')) {
-              bump = 'minor';
-            } else if (labels.includes('version:patch')) {
-              bump = 'patch';
-            }
+            let bump = 'patch';
+            if (labels.includes('version:major')) bump = 'major';
+            else if (labels.includes('version:minor')) bump = 'minor';
+            else if (labels.includes('version:patch')) bump = 'patch';
 
             core.setOutput('bump', bump);
-            core.info(`Version bump type from PR: ${bump}`);
+            core.setOutput('should_bump', 'true');
+            core.info(`Version bump: ${bump}`);
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -105,7 +109,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Bump version
+      - name: Bump version and push
+        if: steps.version.outputs.should_bump == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
