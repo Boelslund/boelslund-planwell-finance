@@ -336,10 +336,10 @@ describe('Password Reset Integration', () => {
         expect(screen.getByText(/reset email.*sent|check your inbox/i)).toBeInTheDocument();
       });
 
-      const userNotFoundMessage = screen.getByText(/reset email.*sent|check your inbox/i).textContent;
+      const nonExistentEmailMessage = screen.getByText(/reset email.*sent|check your inbox/i).textContent;
 
       // Messages should be the same to prevent email enumeration
-      expect(successMessage).toBe(userNotFoundMessage);
+      expect(successMessage).toBe(nonExistentEmailMessage);
     });
 
     it('should handle email case sensitivity consistently', async () => {
