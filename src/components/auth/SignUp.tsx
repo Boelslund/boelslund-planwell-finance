@@ -116,6 +116,7 @@ export function SignUp() {
       <form
         onSubmit={handleSubmit}
         aria-busy={loading}
+        noValidate
       >
         <label htmlFor="displayName">Name</label>
         <input
@@ -124,6 +125,7 @@ export function SignUp() {
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           autoComplete="name"
+          required
           aria-required="true"
           aria-describedby={errors.displayName ? "displayName-error" : undefined}
         />
@@ -136,6 +138,7 @@ export function SignUp() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
+          required
           aria-required="true"
           aria-describedby={errors.email ? "email-error" : undefined}
         />
@@ -148,6 +151,7 @@ export function SignUp() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
+          required
           aria-required="true"
           aria-describedby={errors.password ? "password-error" : undefined}
         />
@@ -160,6 +164,7 @@ export function SignUp() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
+          required
           aria-required="true"
           aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
         />
