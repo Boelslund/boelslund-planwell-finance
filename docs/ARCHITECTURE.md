@@ -286,7 +286,7 @@ The app uses React Router v7 for client-side routing:
 
 ## Data Model
 
-### Firestore Schema (Planned) (Planned)
+### Firestore Schema (Planned)
 
 The following schema is planned for future implementation:
 
