@@ -165,9 +165,16 @@ describe('AuthContext', () => {
   describe('Authentication State', () => {
     it('should update user state when authentication state changes', async () => {
       renderWithProvider(<TestComponent />);
+
+      // Initially, the auth state is loading before onAuthStateChanged resolves
+      expect(screen.getByTestId('loading')).toHaveTextContent('loading');
+
+      // Wait for the auth state listener (mocked to return null) to complete
       await waitForReady();
-      // When implemented, this should handle auth state changes
-      // and update the user accordingly
+
+      // After auth state is resolved, loading should be false and user should be null
+      expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+      expect(screen.getByTestId('user')).toHaveTextContent('no user');
     });
   });
 
