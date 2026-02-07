@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, type Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -10,7 +10,7 @@ export function runErrorHandlingTests(
   options: {
     renderComponent: () => void;
     fillForm: (user: ReturnType<typeof userEvent.setup>) => Promise<void>;
-    mockSubmit: () => unknown;
+    mockSubmit: () => Mock;
     errors: { code?: string; message?: string; expectedDisplay: RegExp }[];
   },
 ) {
@@ -24,7 +24,6 @@ export function runErrorHandlingTests(
         const user = userEvent.setup();
         const mockFn = options.mockSubmit();
         const errorObj = error.code ? { code: error.code } : new Error(error.message || 'Error');
-        // @ts-expect-error - mock function
         mockFn.mockRejectedValueOnce(errorObj);
         options.renderComponent();
 
@@ -42,7 +41,6 @@ export function runErrorHandlingTests(
     it('should re-enable submit button after error', async () => {
       const user = userEvent.setup();
       const mockFn = options.mockSubmit();
-      // @ts-expect-error - mock function
       mockFn.mockRejectedValueOnce(new Error('Network error'));
       options.renderComponent();
 

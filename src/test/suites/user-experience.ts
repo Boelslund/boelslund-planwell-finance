@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, type Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -10,7 +10,7 @@ export function runUserExperienceTests(
   options: {
     renderComponent: () => void;
     fillForm: (user: ReturnType<typeof userEvent.setup>) => Promise<void>;
-    mockSubmit: () => unknown;
+    mockSubmit: () => Mock;
     focusOnMount?: RegExp;
     shouldTrimWhitespace?: { field: RegExp; expectedValue: string };
     shouldAllowEnterSubmit?: boolean;
@@ -29,7 +29,6 @@ export function runUserExperienceTests(
       it('should trim whitespace from input', async () => {
         const user = userEvent.setup();
         const mockFn = options.mockSubmit();
-        // @ts-expect-error - mock function
         mockFn.mockResolvedValueOnce(undefined);
         options.renderComponent();
 
@@ -52,7 +51,6 @@ export function runUserExperienceTests(
       it('should allow submitting form by pressing Enter', async () => {
         const user = userEvent.setup();
         const mockFn = options.mockSubmit();
-        // @ts-expect-error - mock function
         mockFn.mockResolvedValueOnce(undefined);
         options.renderComponent();
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, type Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -10,13 +10,14 @@ export function runFormValidationTests(
   options: {
     renderComponent: () => void;
     requiredFields: { label: RegExp; errorMessage: RegExp }[];
-    mockSubmit: () => unknown;
+    mockSubmit: () => Mock;
   },
 ) {
   describe(`${componentName} - Form Validation`, () => {
     options.requiredFields.forEach((field) => {
       it(`should show error when ${field.label.source} is empty`, async () => {
         const user = userEvent.setup();
+        const mockFn = options.mockSubmit();
         options.renderComponent();
 
         const submitButton = screen.getByRole('button', {
@@ -27,7 +28,7 @@ export function runFormValidationTests(
         await waitFor(() => {
           expect(screen.getByText(field.errorMessage)).toBeInTheDocument();
         });
-        expect(options.mockSubmit()).not.toHaveBeenCalled();
+        expect(mockFn).not.toHaveBeenCalled();
       });
 
       it(`should mark ${field.label.source} as required`, () => {
