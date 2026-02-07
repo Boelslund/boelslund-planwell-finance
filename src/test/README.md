@@ -234,10 +234,9 @@ describe('MyForm', () => {
   });
 
   runSuccessfulSubmissionTests('MyForm', {
-    rening documentation](../../docs/TESTING.md) - Comprehensive testing guidelines
-- [PasswordReset.test.tsx](../components/auth/PasswordReset.test.tsx) - Real example using all test suites
-- [SignIn.test.tsx](../components/auth/SignIn.test.tsx) - Another complete example
-- [SignUp.test.tsx](../components/auth/SignUp.test.tsx) - Additional reference implementation
+    renderComponent,
+    fillForm,
+    mockSubmit: () => mockSubmit,
     expectedCallArgs: ['test@example.com'],
     shouldShowLoading: true,
     loadingText: /submitting/i
@@ -315,3 +314,5 @@ When you notice a pattern appearing in 3+ test files:
 - [Test suites organization](./SUITES_ORGANIZATION.md) - Details on the suite file structure
 - [Testing documentation](../../docs/TESTING.md) - Comprehensive testing guidelines
 - [PasswordReset.test.tsx](../components/auth/PasswordReset.test.tsx) - Real example using all test suites
+- [SignIn.test.tsx](../components/auth/SignIn.test.tsx) - Another complete example
+- [SignUp.test.tsx](../components/auth/SignUp.test.tsx) - Additional reference implementation
