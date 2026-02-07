@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -7,8 +7,16 @@ export function PasswordReset() {
   const [errors, setErrors] = useState({ email: "", generic: "" });
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const successMessageRef = useRef<HTMLDivElement>(null);
 
   const { resetPassword } = useAuth();
+
+  // Focus the success message when it appears for better screen reader feedback
+  useEffect(() => {
+    if (mailSent && successMessageRef.current) {
+      successMessageRef.current.focus();
+    }
+  }, [mailSent]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,9 +42,10 @@ export function PasswordReset() {
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code || "";
       if (errorCode === "auth/user-not-found") {
-        // Security: Don't reveal if email exists - show same success message
+        // Avoid account enumeration: treat as success and show the same UI
         setMailSent(true);
         setEmail("");
+        return;
       } else if (errorCode === "auth/invalid-email") {
         setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
       } else if (errorCode === "auth/too-many-requests") {
@@ -54,7 +63,13 @@ export function PasswordReset() {
       <h1>Reset Password</h1>
       <p>Enter your email to receive a password reset link.</p>
       {mailSent && (
-        <div style={{ color: 'green' }} aria-label="Password reset email sent! Please check your inbox and spam folder.">
+        <div 
+          ref={successMessageRef}
+          role="status" 
+          aria-live="polite"
+          tabIndex={-1}
+          style={{ color: 'green', outline: 'none' }}
+        >
           <p>Password reset email sent! Please check your inbox.</p>
           <p style={{ fontSize: '0.9em' }}>If you don't see the email, please check your spam folder.</p>
         </div>
