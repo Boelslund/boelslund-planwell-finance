@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { BrowserRouter } from 'react-router-dom'
+import { axe, toHaveNoViolations } from 'jest-axe'
 import { Header } from './Header'
-import { AuthProvider } from '../../contexts/AuthContext'
 import { onAuthStateChanged, type User } from 'firebase/auth'
+import { mockUser, setupAuthMock, renderWithProviders } from '../../test/test-utils'
+
+expect.extend(toHaveNoViolations)
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -26,26 +28,9 @@ vi.mock('firebase/auth', async () => {
   }
 })
 
-const mockUser: Partial<User> = {
-  uid: 'test-user-123',
-  email: 'test@example.com',
-  displayName: 'Test User',
-  photoURL: null,
-}
-
 const renderHeader = (user: Partial<User> | null = mockUser) => {
-  vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
-    (callback as (user: User | null) => void)(user as User | null)
-    return vi.fn()
-  })
-
-  return render(
-    <BrowserRouter>
-      <AuthProvider>
-        <Header />
-      </AuthProvider>
-    </BrowserRouter>
-  )
+  setupAuthMock(user, onAuthStateChanged)
+  return renderWithProviders(<Header />)
 }
 
 describe('Header Component', () => {
@@ -385,6 +370,188 @@ describe('Header Component', () => {
       await waitFor(() => {
         expect(screen.queryByRole('menu')).not.toBeInTheDocument()
       })
+    })
+  })
+})
+
+describe('Header - Accessibility', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('WCAG Compliance', () => {
+    it('should have no accessibility violations when unauthenticated', async () => {
+      const { container } = renderHeader(null)
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+
+    it('should have no accessibility violations when authenticated', async () => {
+      const { container } = renderHeader(mockUser)
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+
+    it('should have no accessibility violations with user menu open', async () => {
+      const user = userEvent.setup()
+      const { container } = renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      await user.click(menuButton)
+
+      await waitFor(() => {
+        expect(screen.getByRole('menu')).toBeInTheDocument()
+      })
+
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+  })
+
+  describe('Semantic HTML', () => {
+    it('should use semantic header element', () => {
+      const { container } = renderHeader(mockUser)
+      const header = container.querySelector('header')
+      expect(header).toBeInTheDocument()
+      expect(header).toHaveClass('header')
+    })
+
+    it('should have banner role', () => {
+      renderHeader(mockUser)
+      const banner = screen.getByRole('banner')
+      expect(banner).toBeInTheDocument()
+    })
+  })
+
+  describe('Keyboard Navigation', () => {
+    it('should allow keyboard navigation to user menu', async () => {
+      const user = userEvent.setup()
+      renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      menuButton.focus()
+      expect(menuButton).toHaveFocus()
+
+      await user.keyboard('{Enter}')
+      await waitFor(() => {
+        expect(screen.getByRole('menu')).toBeInTheDocument()
+      })
+    })
+
+    it('should close menu with Escape key', async () => {
+      const user = userEvent.setup()
+      renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      await user.click(menuButton)
+
+      await waitFor(() => {
+        expect(screen.getByRole('menu')).toBeInTheDocument()
+      })
+
+      await user.keyboard('{Escape}')
+
+      await waitFor(() => {
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('ARIA Attributes', () => {
+    it('should have aria-expanded on menu button', async () => {
+      renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('should update aria-expanded when menu is toggled', async () => {
+      const user = userEvent.setup()
+      renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+
+      await user.click(menuButton)
+
+      await waitFor(() => {
+        expect(menuButton).toHaveAttribute('aria-expanded', 'true')
+      })
+    })
+  })
+
+  describe('Focus Management', () => {
+    it('should maintain focus when menu is opened', async () => {
+      const user = userEvent.setup()
+      renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      await user.click(menuButton)
+
+      await waitFor(() => {
+        expect(screen.getByRole('menu')).toBeInTheDocument()
+      })
+
+      expect(document.activeElement).toBeTruthy()
+    })
+  })
+
+  describe('Screen Reader Support', () => {
+    it('should have accessible button for user menu', async () => {
+      renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      expect(menuButton).toHaveAccessibleName()
+    })
+
+    it('should have accessible sign out button', async () => {
+      const user = userEvent.setup()
+      renderHeader(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByRole('button', { name: /user menu/i })
+      await user.click(menuButton)
+
+      await waitFor(() => {
+        expect(screen.getByRole('menuitem', { name: /sign out/i })).toBeInTheDocument()
+      })
+
+      const signOutButton = screen.getByRole('menuitem', { name: /sign out/i })
+      expect(signOutButton).toHaveAccessibleName()
     })
   })
 })

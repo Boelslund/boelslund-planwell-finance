@@ -10,6 +10,7 @@ import { Terms } from './components/legal/Terms'
 import { Support } from './components/legal/Support'
 import { Home } from './pages/Home'
 import { Dashboard } from './pages/Dashboard'
+import { PasswordReset } from './components/auth/PasswordReset'
 
 function LayoutWrapper() {
   return <Layout><Outlet /></Layout>
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           <Route element={<LayoutWrapper />}>
             <Route path="/" element={<Home />} />
+            <Route path="/password-reset" element={<PasswordReset />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

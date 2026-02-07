@@ -1,10 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, toHaveNoViolations } from '../../test/test-utils';
 import userEvent from '@testing-library/user-event';
+import { renderWithRouter } from '../../test/test-utils';
 import { SignIn } from './SignIn';
 import { useAuth } from '../../contexts/AuthContext';
 import type { User } from 'firebase/auth';
-import { ReactNode } from 'react';
+import {
+  runFormAccessibilityTests,
+  runFormErrorAccessibilityTests,
+  runLoadingStateAccessibilityTests,
+  runComponentRenderingTests,
+  runFormValidationTests,
+  runSuccessfulSubmissionTests,
+  runErrorHandlingTests,
+  runUserExperienceTests,
+} from '../../test/suites';
+import { type ReactNode } from 'react';
+
+expect.extend(toHaveNoViolations);
 
 // Mock the useAuth hook
 vi.mock('../../contexts/AuthContext', () => ({
@@ -13,12 +26,16 @@ vi.mock('../../contexts/AuthContext', () => ({
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    Link: ({ children, to }: { children: ReactNode; to: string }) => (
+      <a href={to}>{children}</a>
+    ),
+  };
+});
 
 describe('SignIn Component', () => {
   const mockSignIn = vi.fn();
@@ -31,129 +48,115 @@ describe('SignIn Component', () => {
       signIn: mockSignIn,
       signUp: vi.fn(),
       signOut: vi.fn(),
+      resetPassword: vi.fn(),
     });
   });
 
-  describe('Rendering', () => {
-    it('should render sign in form with all required fields', () => {
-      render(<SignIn />);
+  const renderComponent = () => renderWithRouter(<SignIn />);
 
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /log in|sign in/i })).toBeInTheDocument();
-    });
+  const fillForm = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/password/i), 'password123');
+  };
 
-    it('should render email input field', () => {
-      render(<SignIn />);
+  // ============================================
+  // SHARED TEST SUITES
+  // ============================================
 
-      const emailInput = screen.getByLabelText(/email/i);
-      expect(emailInput).toHaveAttribute('type', 'email');
-    });
-
-    it('should render password input field', () => {
-      render(<SignIn />);
-
-      const passwordInput = screen.getByLabelText(/password/i);
-      expect(passwordInput).toHaveAttribute('type', 'password');
-    });
-
-    it('should have a link to registration page', () => {
-      render(<SignIn />);
-
-      const registerLink = screen.getByText(/sign up|register|create account/i);
-      expect(registerLink).toBeInTheDocument();
-      expect(registerLink).toHaveAttribute('href', '/signup');
-    });
-
-    it('should display a heading or title', () => {
-      render(<SignIn />);
-
-      expect(screen.getByRole('heading', { name: /log in|sign in/i })).toBeInTheDocument();
-    });
+  // Rendering tests
+  runComponentRenderingTests('SignIn', {
+    renderComponent,
+    heading: /log in|sign in/i,
+    formFields: [
+      { label: /email/i, type: 'email' },
+      { label: /password/i, type: 'password' },
+    ],
+    submitButton: /log in|sign in/i,
+    links: [
+      { text: /sign up|register|create account/i, href: '/signup' },
+      { text: /forgot password|reset password/i, href: '/password-reset' },
+    ],
   });
 
-  describe('Form Validation', () => {
-    it('should show error when submitting with empty email', async () => {
+  // Validation tests
+  runFormValidationTests('SignIn', {
+    renderComponent,
+    requiredFields: [
+      { label: /email/i, errorMessage: /email is required/i },
+      { label: /password/i, errorMessage: /password is required/i },
+    ],
+    mockSubmit: () => mockSignIn,
+  });
+
+  // Successful submission tests
+  runSuccessfulSubmissionTests('SignIn', {
+    renderComponent,
+    fillForm,
+    mockSubmit: () => mockSignIn,
+    expectedCallArgs: ['test@example.com', 'password123'],
+    shouldShowLoading: true,
+    loadingText: /loading|signing in/i,
+  });
+
+  // Error handling tests
+  runErrorHandlingTests('SignIn', {
+    renderComponent,
+    fillForm,
+    mockSubmit: () => mockSignIn,
+    errors: [
+      { code: 'auth/wrong-password', expectedDisplay: /incorrect password|wrong password/i },
+      { code: 'auth/user-not-found', expectedDisplay: /user not found|no account found/i },
+      { code: 'auth/invalid-credential', expectedDisplay: /invalid credentials|incorrect email or password/i },
+      { message: 'Unknown error', expectedDisplay: /error|failed|something went wrong/i },
+    ],
+  });
+
+  // User experience tests
+  runUserExperienceTests('SignIn', {
+    renderComponent,
+    fillForm,
+    mockSubmit: () => mockSignIn,
+    shouldAllowEnterSubmit: true,
+  });
+
+  // Accessibility test suites
+  runFormAccessibilityTests('SignIn', renderComponent);
+
+  runFormErrorAccessibilityTests('SignIn', {
+    renderComponent: () => renderComponent(),
+    triggerError: async () => {
       const user = userEvent.setup();
-      render(<SignIn />);
-
       const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
       await user.click(submitButton);
+    },
+    errorMessage: /email is required/i,
+    associatedInputLabel: /email/i,
+  });
 
-      await waitFor(() => {
-        expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-      });
-      expect(mockSignIn).not.toHaveBeenCalled();
-    });
-
-    it('should show error when submitting with empty password', async () => {
+  runLoadingStateAccessibilityTests('SignIn', {
+    renderComponent: () => renderComponent(),
+    triggerLoading: async () => {
+      mockSignIn.mockImplementation(() => new Promise(() => { })); // Never resolves
       const user = userEvent.setup();
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      await user.type(emailInput, 'test@example.com');
-
+      await fillForm(user);
       const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
       await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/password is required/i)).toBeInTheDocument();
-      });
-      expect(mockSignIn).not.toHaveBeenCalled();
-    });
-
-    it('should show error for invalid email format', async () => {
-      // Note: Browser's type="email" handles format validation,
-      // so this test verifies the browser behavior works as expected
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      expect(emailInput).toHaveAttribute('type', 'email');
-
-      // Browser validation will prevent submission of invalid emails
-      // This test verifies the input type is correct for browser validation
-    });
-
-    it('should not show validation errors initially', () => {
-      render(<SignIn />);
-
-      expect(screen.queryByText(/email is required/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/password is required/i)).not.toBeInTheDocument();
-    });
+    },
+    loadingIndicator: /loading|signing in/i,
   });
+
+  // ============================================
+  // COMPONENT-SPECIFIC TESTS
+  // ============================================
 
   describe('Form Submission', () => {
-    it('should call signIn with correct credentials', async () => {
-      const user = userEvent.setup();
-      mockSignIn.mockResolvedValue(undefined);
-
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'password123');
-
-      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123');
-      });
-    });
-
     it('should navigate to home page after successful sign in', async () => {
       const user = userEvent.setup();
       mockSignIn.mockResolvedValue(undefined);
 
-      render(<SignIn />);
+      renderComponent();
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'password123');
+      await fillForm(user);
 
       const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
       await user.click(submitButton);
@@ -164,149 +167,7 @@ describe('SignIn Component', () => {
     });
   });
 
-  describe('Loading States', () => {
-    it('should show loading state during sign in', async () => {
-      const user = userEvent.setup();
-      let resolveSignIn: () => void;
-      const signInPromise = new Promise<void>((resolve) => {
-        resolveSignIn = resolve;
-      });
-      mockSignIn.mockReturnValue(signInPromise);
-
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'password123');
-
-      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
-      await user.click(submitButton);
-
-      expect(screen.getByText(/loading|signing in/i)).toBeInTheDocument();
-
-      resolveSignIn!();
-    });
-
-    it('should disable submit button during loading', async () => {
-      const user = userEvent.setup();
-      let resolveSignIn: () => void;
-      const signInPromise = new Promise<void>((resolve) => {
-        resolveSignIn = resolve;
-      });
-      mockSignIn.mockReturnValue(signInPromise);
-
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'password123');
-
-      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
-      await user.click(submitButton);
-
-      expect(submitButton).toBeDisabled();
-
-      resolveSignIn!();
-    });
-  });
-
   describe('Error Handling', () => {
-    it('should display error message for wrong password', async () => {
-      const user = userEvent.setup();
-      mockSignIn.mockRejectedValue({
-        code: 'auth/wrong-password',
-        message: 'Wrong password',
-      });
-
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'wrongpassword');
-
-      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/incorrect password|wrong password/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should display error message for user not found', async () => {
-      const user = userEvent.setup();
-      mockSignIn.mockRejectedValue({
-        code: 'auth/user-not-found',
-        message: 'User not found',
-      });
-
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'nonexistent@example.com');
-      await user.type(passwordInput, 'password123');
-
-      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/user not found|no account found/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should display error message for invalid credentials', async () => {
-      const user = userEvent.setup();
-      mockSignIn.mockRejectedValue({
-        code: 'auth/invalid-credential',
-        message: 'Invalid credentials',
-      });
-
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'wrongpassword');
-
-      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/invalid credentials|incorrect email or password/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should display generic error message for unknown errors', async () => {
-      const user = userEvent.setup();
-      mockSignIn.mockRejectedValue({
-        code: 'auth/unknown-error',
-        message: 'Something went wrong',
-      });
-
-      render(<SignIn />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'password123');
-
-      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/error|failed|something went wrong/i)).toBeInTheDocument();
-      });
-    });
-
     it('should clear previous error when user retries', async () => {
       const user = userEvent.setup();
       mockSignIn.mockRejectedValueOnce({
@@ -314,13 +175,9 @@ describe('SignIn Component', () => {
         message: 'Wrong password',
       });
 
-      render(<SignIn />);
+      renderComponent();
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'wrongpassword');
+      await fillForm(user);
 
       const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
       await user.click(submitButton);
@@ -331,6 +188,7 @@ describe('SignIn Component', () => {
 
       mockSignIn.mockResolvedValue(undefined);
 
+      const passwordInput = screen.getByLabelText(/password/i);
       await user.clear(passwordInput);
       await user.type(passwordInput, 'correctpassword');
       await user.click(submitButton);
@@ -354,11 +212,42 @@ describe('SignIn Component', () => {
         signIn: mockSignIn,
         signUp: vi.fn(),
         signOut: vi.fn(),
+        resetPassword: vi.fn(),
       });
 
-      render(<SignIn />);
+      renderComponent();
 
       expect(mockNavigate).toHaveBeenCalledWith('/');
+    });
+  });
+
+  describe('Accessibility - Additional', () => {
+    it('should have autocomplete attributes for better UX', () => {
+      renderComponent();
+
+      const emailInput = screen.getByLabelText(/email/i);
+      const passwordInput = screen.getByLabelText(/password/i);
+
+      expect(emailInput).toHaveAttribute('autocomplete', 'email');
+      expect(passwordInput).toHaveAttribute('autocomplete', 'current-password');
+    });
+
+    it('should not lose focus on error display', async () => {
+      const user = userEvent.setup();
+      renderComponent();
+
+      const emailInput = screen.getByLabelText(/email/i);
+      await user.click(emailInput);
+
+      const submitButton = screen.getByRole('button', { name: /log in|sign in/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+      });
+
+      // Focus should remain manageable
+      expect(document.activeElement).toBeTruthy();
     });
   });
 });

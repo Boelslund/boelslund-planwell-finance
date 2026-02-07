@@ -113,7 +113,10 @@ export function SignUp() {
   return (
     <div>
       <h1>Sign Up</h1>
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        aria-busy={loading}
+      >
         <label htmlFor="displayName">Name</label>
         <input
           id="displayName"
@@ -121,8 +124,10 @@ export function SignUp() {
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           autoComplete="name"
+          aria-required="true"
+          aria-describedby="displayName-error"
         />
-        {errors.displayName && <div style={{ color: 'red' }}>{errors.displayName}</div>}
+        {errors.displayName && <div id="displayName-error" style={{ color: 'red' }}>{errors.displayName}</div>}
 
         <label htmlFor="email">Email</label>
         <input
@@ -131,8 +136,10 @@ export function SignUp() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
+          aria-required="true"
+          aria-describedby="email-error"
         />
-        {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
+        {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
 
         <label htmlFor="password">Password</label>
         <input
@@ -141,8 +148,10 @@ export function SignUp() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
+          aria-required="true"
+          aria-describedby="password-error"
         />
-        {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
+        {errors.password && <div id="password-error" style={{ color: 'red' }}>{errors.password}</div>}
 
         <label htmlFor="confirmPassword">Confirm Password</label>
         <input
@@ -151,10 +160,12 @@ export function SignUp() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
+          aria-required="true"
+          aria-describedby="confirmPassword-error"
         />
-        {errors.confirmPassword && <div style={{ color: 'red' }}>{errors.confirmPassword}</div>}
+        {errors.confirmPassword && <div id="confirmPassword-error" style={{ color: 'red' }}>{errors.confirmPassword}</div>}
 
-        {authError && <div style={{ color: 'red' }}>{authError}</div>}
+        {authError && <div id="authError" style={{ color: 'red' }}>{authError}</div>}
 
         <button type="submit" disabled={loading}>
           {loading ? "Signing Up..." : "Sign Up"}

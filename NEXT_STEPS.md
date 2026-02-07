@@ -42,7 +42,7 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 - [x] Persist authentication state (Firebase handles this automatically)
 - [x] Auto-login on page refresh (via onAuthStateChanged)
 - [x] Logout functionality (signOut implemented in AuthContext)
-- [ ] Password reset flow (email link)
+- [x] Password reset flow (email link)
 - [ ] Email verification
 
 ### 1.4 User Profile
@@ -776,7 +776,6 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 ### Priority: High (After First Production Release)
 
 - [ ] **SonarCloud Integration** - Deep code quality and security analysis
-
   - Sign up at [sonarcloud.io](https://sonarcloud.io)
   - Connect to GitHub repository
   - Add SonarCloud status check to rulesets
@@ -791,14 +790,12 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 ### Priority: Medium (Nice to Have)
 
 - [ ] **Enhanced CodeQL Queries** - Enable more comprehensive security scans
-
   - Go to Settings → Code security and analysis → Code scanning
   - Click "Edit configuration" for CodeQL
   - Enable extended security queries in the configuration
   - Review and fix new findings
 
 - [ ] **Snyk Integration** - Alternative/additional dependency scanning
-
   - Consider if Dependabot isn't sufficient
   - More detailed vulnerability information
   - Container and infrastructure scanning

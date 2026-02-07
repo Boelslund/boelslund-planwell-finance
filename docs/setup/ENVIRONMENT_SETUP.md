@@ -123,8 +123,8 @@ npm run dev -- --port 3000
 ## Next Steps
 
 - Review [firebase-lazy-init.md](./firebase-lazy-init.md) to understand Firebase initialization
-- Check [TESTING.md](./TESTING.md) for running and writing tests
-- See [CONTRIBUTING.md](./CONTRIBUTING.md) for development workflow
+- Check [TESTING.md](../TESTING.md) for running and writing tests
+- See [CONTRIBUTING.md](../CONTRIBUTING.md) for development workflow
 
 ## Security Notes
 

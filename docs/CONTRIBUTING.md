@@ -6,7 +6,7 @@ Thank you for considering contributing to Boelslund PlanWell Finance! This docum
 
 ### 1. Set Up Development Environment
 
-Follow the [Environment Setup Guide](./ENVIRONMENT_SETUP.md) to get started.
+Follow the [Environment Setup Guide](./setup/ENVIRONMENT_SETUP.md) to get started.
 
 ### 2. Create a Feature Branch
 
