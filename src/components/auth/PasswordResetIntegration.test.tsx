@@ -70,12 +70,13 @@ describe('Password Reset Integration', () => {
       const submitButton = screen.getByRole('button', { name: /send reset link|reset password/i });
       await user.click(submitButton);
 
+      // Should show success message (not revealing email doesn't exist)
       await waitFor(() => {
-        expect(screen.getByText(/no account.*email|user not found/i)).toBeInTheDocument();
+        expect(screen.getByText(/reset email.*sent|check your inbox/i)).toBeInTheDocument();
       });
 
-      // User can try again with different email
-      expect(submitButton).not.toBeDisabled();
+      // Email input should be cleared after "success"
+      expect(emailInput).toHaveValue('');
     });
 
     it('should handle rate limiting error', async () => {
@@ -302,7 +303,7 @@ describe('Password Reset Integration', () => {
     it('should not reveal whether email exists in system (consistent messaging)', async () => {
       const user = userEvent.setup();
 
-      // Success case
+      // Success case - email exists
       vi.mocked(sendPasswordResetEmail).mockResolvedValueOnce(undefined);
       const { unmount } = renderWithProviders(<PasswordReset />);
 
@@ -320,7 +321,7 @@ describe('Password Reset Integration', () => {
 
       unmount();
 
-      // User not found case - should show specific error
+      // User not found case - should show same success message for security
       const error = { code: 'auth/user-not-found' };
       vi.mocked(sendPasswordResetEmail).mockRejectedValueOnce(error);
       renderWithProviders(<PasswordReset />);
@@ -332,13 +333,13 @@ describe('Password Reset Integration', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/no account.*email|user not found/i)).toBeInTheDocument();
+        expect(screen.getByText(/reset email.*sent|check your inbox/i)).toBeInTheDocument();
       });
 
-      const errorMessage = screen.getByText(/no account.*email|user not found/i).textContent;
+      const userNotFoundMessage = screen.getByText(/reset email.*sent|check your inbox/i).textContent;
 
-      // Messages should be different to inform the user
-      expect(successMessage).not.toBe(errorMessage);
+      // Messages should be the same to prevent email enumeration
+      expect(successMessage).toBe(userNotFoundMessage);
     });
 
     it('should handle email case sensitivity consistently', async () => {

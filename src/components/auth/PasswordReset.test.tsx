@@ -100,7 +100,7 @@ describe('PasswordReset Component', () => {
     fillForm,
     mockSubmit: () => mockResetPassword,
     errors: [
-      { code: 'auth/user-not-found', expectedDisplay: /no account.*email|user not found/i },
+      // Note: auth/user-not-found is intentionally not tested here as it shows success message for security
       { code: 'auth/invalid-email', expectedDisplay: /invalid email/i },
       { code: 'auth/too-many-requests', expectedDisplay: /too many.*try again later/i },
       { message: 'Network error', expectedDisplay: /reset failed|error/i },

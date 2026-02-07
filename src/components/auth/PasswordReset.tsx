@@ -34,7 +34,9 @@ export function PasswordReset() {
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code || "";
       if (errorCode === "auth/user-not-found") {
-        setErrors((prev) => ({ ...prev, email: "No account found with this email" }));
+        // Security: Don't reveal if email exists - show same success message
+        setMailSent(true);
+        setEmail("");
       } else if (errorCode === "auth/invalid-email") {
         setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
       } else if (errorCode === "auth/too-many-requests") {
