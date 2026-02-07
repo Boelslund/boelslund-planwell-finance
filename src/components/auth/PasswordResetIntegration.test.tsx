@@ -57,27 +57,6 @@ describe('Password Reset Integration', () => {
       );
     });
 
-    it('should handle user-not-found error gracefully', async () => {
-      const user = userEvent.setup();
-      const error = { code: 'auth/user-not-found', message: 'User not found' };
-      vi.mocked(sendPasswordResetEmail).mockRejectedValueOnce(error);
-
-      renderWithProviders(<PasswordReset />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      await user.type(emailInput, 'nonexistent@example.com');
-
-      const submitButton = screen.getByRole('button', { name: /send reset link|reset password/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/no account.*email|user not found/i)).toBeInTheDocument();
-      });
-
-      // User can try again with different email
-      expect(submitButton).not.toBeDisabled();
-    });
-
     it('should handle rate limiting error', async () => {
       const user = userEvent.setup();
       const error = { code: 'auth/too-many-requests', message: 'Too many attempts' };
@@ -302,7 +281,7 @@ describe('Password Reset Integration', () => {
     it('should not reveal whether email exists in system (consistent messaging)', async () => {
       const user = userEvent.setup();
 
-      // Success case
+      // Success case - email exists
       vi.mocked(sendPasswordResetEmail).mockResolvedValueOnce(undefined);
       const { unmount } = renderWithProviders(<PasswordReset />);
 
@@ -313,14 +292,15 @@ describe('Password Reset Integration', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/reset email.*sent|check your inbox/i)).toBeInTheDocument();
+        expect(screen.getByText(/if.*email.*registered|if.*account.*exists|check your inbox/i)).toBeInTheDocument();
       });
 
-      const successMessage = screen.getByText(/reset email.*sent|check your inbox/i).textContent;
+      const successMessage = screen.getByText(/if.*email.*registered|if.*account.*exists|check your inbox/i).textContent;
 
       unmount();
 
-      // User not found case - should show specific error
+      // User not found case - email doesn't exist
+      // Should show same ambiguous message to prevent email enumeration
       const error = { code: 'auth/user-not-found' };
       vi.mocked(sendPasswordResetEmail).mockRejectedValueOnce(error);
       renderWithProviders(<PasswordReset />);
@@ -332,13 +312,14 @@ describe('Password Reset Integration', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/no account.*email|user not found/i)).toBeInTheDocument();
+        expect(screen.getByText(/if.*email.*registered|if.*account.*exists|check your inbox/i)).toBeInTheDocument();
       });
 
-      const errorMessage = screen.getByText(/no account.*email|user not found/i).textContent;
+      const errorMessage = screen.getByText(/if.*email.*registered|if.*account.*exists|check your inbox/i).textContent;
 
-      // Messages should be different to inform the user
-      expect(successMessage).not.toBe(errorMessage);
+      // Messages should be identical to prevent email enumeration
+      // Both should say "if your email is registered, you'll receive a reset link"
+      expect(successMessage).toBe(errorMessage);
     });
 
     it('should handle email case sensitivity consistently', async () => {
