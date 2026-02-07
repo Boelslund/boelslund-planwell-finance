@@ -36,7 +36,7 @@ import {
   runErrorHandlingTests,
   runUserExperienceTests,
 } from '../../test/suites';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 expect.extend(toHaveNoViolations);
 
