@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, type Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -10,7 +10,7 @@ export function runSuccessfulSubmissionTests(
   options: {
     renderComponent: () => void;
     fillForm: (user: ReturnType<typeof userEvent.setup>) => Promise<void>;
-    mockSubmit: () => unknown;
+    mockSubmit: () => Mock;
     expectedCallArgs?: unknown[];
     successMessage?: RegExp;
     successMessages?: RegExp[]; // Support multiple success message patterns
@@ -23,7 +23,6 @@ export function runSuccessfulSubmissionTests(
     it('should call submit handler with correct data', async () => {
       const user = userEvent.setup();
       const mockFn = options.mockSubmit();
-      // @ts-expect-error - mock function
       mockFn.mockResolvedValueOnce(undefined);
       options.renderComponent();
 
@@ -47,7 +46,6 @@ export function runSuccessfulSubmissionTests(
       it('should disable submit button while processing', async () => {
         const user = userEvent.setup();
         const mockFn = options.mockSubmit();
-        // @ts-expect-error - mock function
         mockFn.mockImplementation(
           () => new Promise((resolve) => setTimeout(resolve, 100)),
         );
@@ -67,7 +65,6 @@ export function runSuccessfulSubmissionTests(
         it('should show loading state while processing', async () => {
           const user = userEvent.setup();
           const mockFn = options.mockSubmit();
-          // @ts-expect-error - mock function
           mockFn.mockImplementation(
             () => new Promise((resolve) => setTimeout(resolve, 100)),
           );
@@ -90,7 +87,6 @@ export function runSuccessfulSubmissionTests(
       it('should display success message after successful submission', async () => {
         const user = userEvent.setup();
         const mockFn = options.mockSubmit();
-        // @ts-expect-error - mock function
         mockFn.mockResolvedValueOnce(undefined);
         options.renderComponent();
 
@@ -118,7 +114,6 @@ export function runSuccessfulSubmissionTests(
       it('should clear form after successful submission', async () => {
         const user = userEvent.setup();
         const mockFn = options.mockSubmit();
-        // @ts-expect-error - mock function
         mockFn.mockResolvedValueOnce(undefined);
         options.renderComponent();
 
