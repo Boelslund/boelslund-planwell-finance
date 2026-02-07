@@ -125,7 +125,7 @@ export function SignUp() {
           onChange={(e) => setDisplayName(e.target.value)}
           autoComplete="name"
           aria-required="true"
-          aria-describedby="displayName-error"
+          aria-describedby={errors.displayName ? "displayName-error" : undefined}
         />
         {errors.displayName && <div id="displayName-error" style={{ color: 'red' }}>{errors.displayName}</div>}
 
@@ -137,7 +137,7 @@ export function SignUp() {
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           aria-required="true"
-          aria-describedby="email-error"
+          aria-describedby={errors.email ? "email-error" : undefined}
         />
         {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
 
@@ -149,7 +149,7 @@ export function SignUp() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
           aria-required="true"
-          aria-describedby="password-error"
+          aria-describedby={errors.password ? "password-error" : undefined}
         />
         {errors.password && <div id="password-error" style={{ color: 'red' }}>{errors.password}</div>}
 
@@ -161,7 +161,7 @@ export function SignUp() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
           aria-required="true"
-          aria-describedby="confirmPassword-error"
+          aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
         />
         {errors.confirmPassword && <div id="confirmPassword-error" style={{ color: 'red' }}>{errors.confirmPassword}</div>}
 
