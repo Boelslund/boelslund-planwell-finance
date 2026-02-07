@@ -69,6 +69,7 @@ export function SignIn() {
       <form
         onSubmit={handleSubmit}
         aria-busy={loading}
+        noValidate
       >
         <label htmlFor="email">Email</label>
         <input
@@ -77,6 +78,7 @@ export function SignIn() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
+          required
           aria-required="true"
           aria-describedby={errors.email ? "email-error" : undefined}
         />
@@ -89,6 +91,7 @@ export function SignIn() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
+          required
           aria-required="true"
           aria-describedby={errors.password ? "password-error" : undefined}
         />
