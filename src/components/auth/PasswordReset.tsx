@@ -95,6 +95,7 @@ export function PasswordReset() {
           aria-describedby={errors.email ? "email-error" : errors.generic ? "generic-error" : undefined}
           aria-invalid={errors.email ? true : undefined}
           aria-required="true"
+          required
         />
         <button
           type="submit"
