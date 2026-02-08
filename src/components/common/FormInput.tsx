@@ -1,3 +1,4 @@
+import { ChangeEvent } from 'react';
 import { ErrorMessage } from './ErrorMessage';
 
 interface FormInputProps {
@@ -5,7 +6,7 @@ interface FormInputProps {
   label: string;
   type: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   autoComplete?: string;
   autoFocus?: boolean;

@@ -1,7 +1,8 @@
+import { ReactNode } from 'react';
 import './ErrorMessage.css';
 
 interface ErrorMessageProps {
-  children: React.ReactNode;
+  children: ReactNode;
   id?: string;
 }
 

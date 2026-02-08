@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 
 export interface UseAuthFormOptions {
   initialValues: Record<string, string>;
@@ -58,16 +58,13 @@ export function useAuthForm({ initialValues, onSubmit }: UseAuthFormOptions) {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     resetErrors();
 
+    setLoading(true);
     try {
-      setLoading(true);
       await onSubmit();
-    } catch (error) {
-      // Error handling is done in the onSubmit callback
-      throw error;
     } finally {
       setLoading(false);
     }

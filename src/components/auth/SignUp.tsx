@@ -42,7 +42,7 @@ export function SignUp() {
   /**
    * Handles profile creation failure with appropriate rollback
    */
-  const handleProfileCreationFailure = async (newUser: any, profileError: unknown) => {
+  const handleProfileCreationFailure = async (newUser: { delete: () => Promise<void> }, profileError: unknown) => {
     try {
       // Try to delete the user account
       await newUser.delete();
