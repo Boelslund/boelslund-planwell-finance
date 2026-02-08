@@ -35,6 +35,30 @@ export default [
       ],
     },
   },
+  // Configuration for test files
+  {
+    files: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: {
+        ...globals.browser,
+        ...globals.jest,
+      },
+      parser: tsparser,
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      'react-hooks': reactHooks,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
+    },
+  },
   // Configuration for config files (vite.config.ts, etc.)
   {
     files: ['*.config.ts'],

@@ -5,9 +5,10 @@ This document describes the technical architecture and design decisions for Boel
 ## Tech Stack
 
 ### Frontend
-- **React 18** - UI library with concurrent features
+- **React 19** - UI library with latest features
+- **React Router 7** - Client-side routing
 - **TypeScript** - Type safety and better DX
-- **Vite** - Fast build tool and dev server
+- **Vite 7** - Fast build tool and dev server
 - **CSS** - Vanilla CSS (no framework dependencies)
 
 ### Backend/Services
@@ -29,15 +30,38 @@ boelslund-planwell-finance/
 ├── docs/                 # Documentation
 ├── src/
 │   ├── components/       # Reusable UI components
-│   ├── features/         # Feature-specific code (future)
-│   ├── hooks/            # Custom React hooks (future)
-│   ├── utils/            # Helper functions (future)
-│   ├── types/            # Shared TypeScript types (future)
+│   │   ├── auth/         # Authentication components
+│   │   │   ├── SignIn.tsx
+│   │   │   ├── SignUp.tsx
+│   │   │   ├── PasswordReset.tsx
+│   │   │   └── ProtectedRoute.tsx
+│   │   ├── common/       # Common UI components
+│   │   │   └── Loading.tsx
+│   │   ├── layout/       # Layout components
+│   │   │   ├── Header.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Navigation.tsx
+│   │   │   └── Layout.tsx
+│   │   └── legal/        # Legal pages
+│   │       ├── Privacy.tsx
+│   │       ├── Terms.tsx
+│   │       └── Support.tsx
+│   ├── contexts/         # React Context providers
+│   │   └── AuthContext.tsx
+│   ├── hooks/            # Custom React hooks
+│   │   └── useMenu.ts
+│   ├── pages/            # Page components
+│   │   ├── Home.tsx
+│   │   └── Dashboard.tsx
+│   ├── services/         # Business logic and API calls
+│   │   └── userProfile.ts
 │   ├── config/           # Configuration files
 │   │   └── firebase.config.ts
 │   ├── test/             # Test setup and utilities
-│   │   └── setup.ts
-│   ├── App.tsx           # Root component
+│   │   ├── setup.ts
+│   │   ├── test-utils.tsx
+│   │   └── suites/       # Test suite helpers
+│   ├── App.tsx           # Root component with routing
 │   ├── main.tsx          # Application entry point
 │   └── firebase.ts       # Firebase initialization
 ├── .env.example          # Environment variable template
@@ -109,14 +133,35 @@ return () => unsubscribe()
 
 ### State Management
 
-#### Current Approach (MVP)
+#### Current Approach
 - **Component State** - `useState` for local UI state
 - **Firebase State** - Real-time listeners for data
+- **React Context** - `AuthContext` for global authentication state
+
+#### AuthContext Implementation
+
+The app uses React Context for authentication state management:
+
+```typescript
+// AuthContext provides:
+- user: User | null              // Current authenticated user
+- loading: boolean               // Auth initialization state
+- signIn(email, password)        // Sign in method
+- signUp(email, password)        // Registration method
+- signOut()                      // Sign out method
+- resetPassword(email)           // Password reset method
+```
+
+**Benefits:**
+- Centralized auth state
+- Automatic re-renders on auth changes
+- Type-safe auth methods
+- Easy access via `useAuth()` hook
 
 #### Future Considerations
 As the app grows, consider:
-- **React Context** - For shared state (auth, active budget)
-- **State Management Library** - Redux, Zustand, or Jotai (if needed)
+- **Additional Context** - Budget context, theme context
+- **State Management Library** - Redux, Zustand, or Jotai (if complex state interactions arise)
 
 ### Component Architecture
 
@@ -135,25 +180,61 @@ As the app grows, consider:
    - Pass data to presentation components
 
 3. **Layout Components**
-   - Page structure
-   - Navigation
+   - Page structure and navigation
    - Responsive design
+   - Examples: `Layout`, `Header`, `Footer`, `Navigation`
+
+4. **Page Components**
+   - Route-level components
+   - Coordinate multiple components
+   - Examples: `Home`, `Dashboard`
+
+5. **Auth Components**
+   - Authentication flows
+   - Protected routes
+   - Examples: `SignIn`, `SignUp`, `PasswordReset`, `ProtectedRoute`
 
 **Example:**
 
 ```typescript
-// Presentation Component
-function ExpenseCard({ expense, onDelete }: ExpenseCardProps) {
+// Auth Component with Context
+import { useAuth } from '../../contexts/AuthContext'
+
+function SignIn() {
+  const { signIn } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    try {
+      await signIn(email, password)
+      navigate('/dashboard')
+    } catch (error) {
+      // Handle error
+    }
+  }
+  
   return (
-    <div className="expense-card">
-      <h3>{expense.name}</h3>
-      <p>${expense.amount}</p>
-      <button onClick={() => onDelete(expense.id)}>Delete</button>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
+      <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+      <button type="submit">Sign In</button>
+    </form>
   )
 }
 
-// Container Component
+// Protected Route Component
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth()
+  
+  if (loading) return <Loading />
+  if (!user) return <Navigate to="/signin" />
+  
+  return <>{children}</>
+}
+
+// Future: Container Component for Expenses
 function ExpenseList() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   
@@ -166,24 +247,48 @@ function ExpenseList() {
     return () => unsubscribe()
   }, [])
   
-  const handleDelete = async (id: string) => {
-    const db = getDbInstance()
-    await deleteDoc(doc(db, 'expenses', id))
-  }
-  
   return (
     <div>
       {expenses.map(expense => (
-        <ExpenseCard key={expense.id} expense={expense} onDelete={handleDelete} />
+        <ExpenseCard key={expense.id} expense={expense} />
       ))}
     </div>
   )
 }
 ```
 
+### Routing
+
+The app uses React Router v7 for client-side routing:
+
+```typescript
+// Current Routes
+/                    → Home (landing page)
+/signin              → SignIn (authentication)
+/signup              → SignUp (registration)
+/password-reset      → PasswordReset (password recovery)
+/dashboard           → Dashboard (protected route)
+/privacy             → Privacy (legal page)
+/terms               → Terms (legal page)
+/support             → Support (legal page)
+```
+
+**Route Protection:**
+- Public routes: Home, SignIn, SignUp, PasswordReset, Legal pages
+- Protected routes: Dashboard (requires authentication)
+- All routes wrapped in `Layout` component for consistent UI
+
+**Navigation Flow:**
+1. Unauthenticated users see Home with sign-in options
+2. Sign-in/up redirects to Dashboard on success
+3. Protected routes redirect to SignIn if not authenticated
+4. Layout provides consistent header/footer/navigation
+
 ## Data Model
 
-### Firestore Schema
+### Firestore Schema (Planned)
+
+The following schema is planned for future implementation:
 
 ```
 users/{userId}
@@ -207,6 +312,11 @@ budgets/{budgetId}/expenses/{expenseId}
   ├── dueDate: string (optional, "MM-DD")
   └── createdAt: timestamp
 ```
+
+**Current State:**
+- Authentication is fully implemented
+- User profiles are stored via Firebase Auth
+- Budget and expense models are not yet implemented
 
 ### Security Rules
 

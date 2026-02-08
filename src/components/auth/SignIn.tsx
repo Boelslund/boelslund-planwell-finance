@@ -66,7 +66,11 @@ export function SignIn() {
   return (
     <div>
       <h1>Sign In</h1>
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        aria-busy={loading}
+        noValidate
+      >
         <label htmlFor="email">Email</label>
         <input
           id="email"
@@ -74,8 +78,11 @@ export function SignIn() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
+          required
+          aria-required="true"
+          aria-describedby={errors.email ? "email-error" : undefined}
         />
-        {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
+        {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
 
         <label htmlFor="password">Password</label>
         <input
@@ -84,8 +91,11 @@ export function SignIn() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
+          required
+          aria-required="true"
+          aria-describedby={errors.password ? "password-error" : undefined}
         />
-        {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
+        {errors.password && <div id="password-error" style={{ color: 'red' }}>{errors.password}</div>}
 
         {authError && <div style={{ color: 'red' }}>{authError}</div>}
 
@@ -93,7 +103,12 @@ export function SignIn() {
           {loading ? "Signing In..." : "Sign In"}
         </button>
       </form>
-      <Link to="/signup">Don't have an account? Sign Up</Link>
+      <div>
+        <Link to="/signup">Don't have an account? Sign Up</Link>
+      </div>
+      <div>
+        <Link to="/password-reset">Forgot Password?</Link>
+      </div>
     </div>
   );
 }

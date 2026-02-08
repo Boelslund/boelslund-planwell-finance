@@ -6,7 +6,7 @@ Welcome to the Boelslund PlanWell Finance documentation! This folder contains co
 
 Start here if you're new to the project:
 
-1. **[Environment Setup](./ENVIRONMENT_SETUP.md)** - Complete guide to setting up your development environment
+1. **[Environment Setup](./setup/ENVIRONMENT_SETUP.md)** - Complete guide to setting up your development environment
    - Prerequisites and installation
    - Firebase project setup
    - Environment variable configuration
@@ -54,6 +54,12 @@ Start here if you're new to the project:
   - Testing with mocks
   - Best practices
 
+- **[Email Customization](./EMAIL_CUSTOMIZATION.md)** - Configure Firebase Auth emails
+  - Customize email templates
+  - Set up custom domains
+  - Fix spam folder issues
+  - Email deliverability best practices
+
 ### Deployment & Performance
 
 - **[Caching Strategy](./CACHING_STRATEGY.md)** - HTTP caching configuration
@@ -67,7 +73,7 @@ Start here if you're new to the project:
 ### For New Contributors
 
 ```
-1. Read: ENVIRONMENT_SETUP.md
+1. Read: setup/ENVIRONMENT_SETUP.md
 2. Read: CONTRIBUTING.md
 3. Read: TESTING.md
 4. Start coding with TDD!
@@ -84,15 +90,15 @@ Start here if you're new to the project:
 
 ### Common Tasks
 
-| Task | Documentation |
-|------|---------------|
-| Set up development environment | [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) |
-| Create a feature branch | [CONTRIBUTING.md](./CONTRIBUTING.md) |
-| Write tests | [TESTING.md](./TESTING.md) |
-| Use Firebase services | [firebase-lazy-init.md](./firebase-lazy-init.md) |
-| Submit a pull request | [CONTRIBUTING.md](./CONTRIBUTING.md) |
-| Understand project structure | [ARCHITECTURE.md](./ARCHITECTURE.md) |
-| Configure caching | [CACHING_STRATEGY.md](./CACHING_STRATEGY.md) |
+| Task                           | Documentation                                    |
+| ------------------------------ | ------------------------------------------------ |
+| Set up development environment | [ENVIRONMENT_SETUP.md](./setup/ENVIRONMENT_SETUP.md)   |
+| Create a feature branch        | [CONTRIBUTING.md](./CONTRIBUTING.md)             |
+| Write tests                    | [TESTING.md](./TESTING.md)                       |
+| Use Firebase services          | [firebase-lazy-init.md](./firebase-lazy-init.md) |
+| Submit a pull request          | [CONTRIBUTING.md](./CONTRIBUTING.md)             |
+| Understand project structure   | [ARCHITECTURE.md](./ARCHITECTURE.md)             |
+| Configure caching              | [CACHING_STRATEGY.md](./CACHING_STRATEGY.md)     |
 
 ## Documentation Standards
 

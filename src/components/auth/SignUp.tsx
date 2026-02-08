@@ -113,7 +113,11 @@ export function SignUp() {
   return (
     <div>
       <h1>Sign Up</h1>
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        aria-busy={loading}
+        noValidate
+      >
         <label htmlFor="displayName">Name</label>
         <input
           id="displayName"
@@ -121,8 +125,11 @@ export function SignUp() {
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           autoComplete="name"
+          required
+          aria-required="true"
+          aria-describedby={errors.displayName ? "displayName-error" : undefined}
         />
-        {errors.displayName && <div style={{ color: 'red' }}>{errors.displayName}</div>}
+        {errors.displayName && <div id="displayName-error" style={{ color: 'red' }}>{errors.displayName}</div>}
 
         <label htmlFor="email">Email</label>
         <input
@@ -131,8 +138,11 @@ export function SignUp() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
+          required
+          aria-required="true"
+          aria-describedby={errors.email ? "email-error" : undefined}
         />
-        {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
+        {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
 
         <label htmlFor="password">Password</label>
         <input
@@ -141,8 +151,11 @@ export function SignUp() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
+          required
+          aria-required="true"
+          aria-describedby={errors.password ? "password-error" : undefined}
         />
-        {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
+        {errors.password && <div id="password-error" style={{ color: 'red' }}>{errors.password}</div>}
 
         <label htmlFor="confirmPassword">Confirm Password</label>
         <input
@@ -151,10 +164,13 @@ export function SignUp() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
+          required
+          aria-required="true"
+          aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
         />
-        {errors.confirmPassword && <div style={{ color: 'red' }}>{errors.confirmPassword}</div>}
+        {errors.confirmPassword && <div id="confirmPassword-error" style={{ color: 'red' }}>{errors.confirmPassword}</div>}
 
-        {authError && <div style={{ color: 'red' }}>{authError}</div>}
+        {authError && <div id="authError" style={{ color: 'red' }}>{authError}</div>}
 
         <button type="submit" disabled={loading}>
           {loading ? "Signing Up..." : "Sign Up"}

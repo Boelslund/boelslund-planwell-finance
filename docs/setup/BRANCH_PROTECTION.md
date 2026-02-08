@@ -12,7 +12,7 @@ This document describes how to set up branch protection using GitHub Rulesets fo
 - GitHub Pro ($4/month)
 - GitHub Team or Enterprise organization
 
-If you have a private repository on a free account, see [VERSIONING.md](VERSIONING.md) for options.
+If you have a private repository on a free account, see [VERSIONING.md](../VERSIONING.md) for options.
 
 ---
 

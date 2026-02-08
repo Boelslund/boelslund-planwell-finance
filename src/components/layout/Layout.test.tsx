@@ -1,9 +1,11 @@
 import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
+import { screen } from '@testing-library/react'
+import { axe, toHaveNoViolations } from 'jest-axe'
 import { Layout } from './Layout'
-import { AuthProvider } from '../../contexts/AuthContext'
+import { renderWithProviders } from '../../test/test-utils'
+
+expect.extend(toHaveNoViolations)
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -25,13 +27,7 @@ vi.mock('firebase/auth', async () => {
 })
 
 const renderLayout = (children: React.ReactNode) => {
-  return render(
-    <BrowserRouter>
-      <AuthProvider>
-        <Layout>{children}</Layout>
-      </AuthProvider>
-    </BrowserRouter>
-  )
+  return renderWithProviders(<Layout>{children}</Layout>)
 }
 
 describe('Layout Component', () => {
@@ -145,6 +141,154 @@ describe('Layout Component', () => {
 
       const navigation = screen.getByRole('navigation', { name: 'Navigation' })
       expect(navigation).toBeInTheDocument()
+    })
+  })
+})
+
+describe('Layout - Extended Accessibility', () => {
+  describe('WCAG Compliance', () => {
+    it('should have no accessibility violations with simple content', async () => {
+      const { container } = renderLayout(<div>Test Content</div>)
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+
+    it('should have no accessibility violations with complex content', async () => {
+      const { container } = renderLayout(
+        <>
+          <h1>Page Title</h1>
+          <section>
+            <h2>Section</h2>
+            <p>Content paragraph</p>
+            <button>Action Button</button>
+          </section>
+        </>
+      )
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+
+    it('should have no accessibility violations with form content', async () => {
+      const { container } = renderLayout(
+        <form>
+          <label htmlFor="test-input">Test Input</label>
+          <input id="test-input" type="text" />
+          <button type="submit">Submit</button>
+        </form>
+      )
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+  })
+
+  describe('Semantic Structure', () => {
+    it('should have all required landmarks', () => {
+      renderLayout(<div>Content</div>)
+
+      const banner = screen.getByRole('banner')
+      const main = screen.getByRole('main')
+      const contentinfo = screen.getByRole('contentinfo')
+      const navigation = screen.getByRole('navigation', { name: 'Navigation' })
+
+      expect(banner).toBeInTheDocument()
+      expect(main).toBeInTheDocument()
+      expect(contentinfo).toBeInTheDocument()
+      expect(navigation).toBeInTheDocument()
+    })
+
+    it('should use semantic HTML elements', () => {
+      const { container } = renderLayout(<div>Content</div>)
+
+      const header = container.querySelector('header')
+      const main = container.querySelector('main')
+      const footer = container.querySelector('footer')
+      const nav = container.querySelector('nav')
+
+      expect(header).toBeInTheDocument()
+      expect(main).toBeInTheDocument()
+      expect(footer).toBeInTheDocument()
+      expect(nav).toBeInTheDocument()
+    })
+
+    it('should maintain proper document structure', () => {
+      renderLayout(<div>Content</div>)
+
+      const banner = screen.getByRole('banner')
+      const main = screen.getByRole('main')
+      const contentinfo = screen.getByRole('contentinfo')
+
+      const container = banner.parentElement
+      const children = Array.from(container?.children || [])
+
+      const bannerIndex = children.indexOf(banner)
+      const mainIndex = children.indexOf(main)
+      const contentinfoIndex = children.indexOf(contentinfo)
+
+      expect(bannerIndex).toBeLessThan(mainIndex)
+      expect(mainIndex).toBeLessThan(contentinfoIndex)
+    })
+  })
+
+  describe('Keyboard Navigation', () => {
+    it('should allow keyboard access to all interactive elements', () => {
+      renderLayout(
+        <>
+          <button>Button 1</button>
+          <a href="/test">Link</a>
+          <button>Button 2</button>
+        </>
+      )
+
+      const button1 = screen.getByRole('button', { name: 'Button 1' })
+      const link = screen.getByRole('link', { name: 'Link' })
+      const button2 = screen.getByRole('button', { name: 'Button 2' })
+
+      expect(button1).toBeInTheDocument()
+      expect(link).toBeInTheDocument()
+      expect(button2).toBeInTheDocument()
+    })
+  })
+
+  describe('Screen Reader Support', () => {
+    it('should provide proper landmark labels', () => {
+      renderLayout(<div>Content</div>)
+
+      const main = screen.getByRole('main')
+      const navigation = screen.getByRole('navigation', { name: 'Navigation' })
+
+      expect(main).toBeInTheDocument()
+      expect(navigation).toBeInTheDocument()
+    })
+
+    it('should maintain proper heading hierarchy', () => {
+      renderLayout(
+        <>
+          <h1>Main Heading</h1>
+          <section>
+            <h2>Section Heading</h2>
+            <h3>Subsection Heading</h3>
+          </section>
+        </>
+      )
+
+      const h1 = screen.getByRole('heading', { level: 1, name: 'Main Heading' })
+      const h2 = screen.getByRole('heading', { level: 2, name: 'Section Heading' })
+      const h3 = screen.getByRole('heading', { level: 3, name: 'Subsection Heading' })
+
+      expect(h1).toBeInTheDocument()
+      expect(h2).toBeInTheDocument()
+      expect(h3).toBeInTheDocument()
+    })
+  })
+
+  describe('Focus Management', () => {
+    it('should maintain focus within layout', () => {
+      renderLayout(<button>Test Button</button>)
+
+      const button = screen.getByRole('button', { name: 'Test Button' })
+      button.focus()
+
+      expect(button).toHaveFocus()
     })
   })
 })

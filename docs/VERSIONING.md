@@ -28,7 +28,7 @@ When a PR is merged to the `test` branch:
 5. The version bump commit uses `[skip ci]` to prevent re-triggering the workflow
 6. Deploys to test environment with the new version
 
-**Note:** For this to work with branch protection, you must configure GitHub Actions to bypass the PR requirement. See [BRANCH_PROTECTION.md](BRANCH_PROTECTION.md#allowing-github-actions-to-bypass-branch-protection) for setup instructions.
+**Note:** For this to work with branch protection, you must configure GitHub Actions to bypass the PR requirement. See [BRANCH_PROTECTION.md](setup/BRANCH_PROTECTION.md#allowing-github-actions-to-bypass-branch-protection) for setup instructions.
 
 ### 3. Deploying to Production
 
@@ -142,7 +142,7 @@ gh label create "version:major" --color "d93f0b" --description "Breaking changes
 
 Branch protection ensures that changes to `test` and `main` branches follow proper review and testing processes.
 
-**📚 See [BRANCH_PROTECTION.md](BRANCH_PROTECTION.md) for complete setup instructions.**
+**📚 See [BRANCH_PROTECTION.md](setup/BRANCH_PROTECTION.md) for complete setup instructions.**
 
 ### Quick Summary
 
@@ -164,9 +164,9 @@ Branch protection ensures that changes to `test` and `main` branches follow prop
 1. Make repository public (or upgrade to Pro) if needed
 2. Configure merge settings (allow both squash and regular merge)
 3. Create three rulesets:
-   - [Test branch ruleset](RULESET_TEST.md) - PR workflow for test
-   - [Main branch ruleset](RULESET_MAIN.md) - PR workflow for main
-   - [Common protections ruleset](RULESET_COMMON.md) - Shared protections for both branches
+   - [Test branch ruleset](setup/RULESET_TEST.md) - PR workflow for test
+   - [Main branch ruleset](setup/RULESET_MAIN.md) - PR workflow for main
+   - [Common protections ruleset](setup/RULESET_COMMON.md) - Shared protections for both branches
 
 See the linked documentation for detailed configuration steps.
 

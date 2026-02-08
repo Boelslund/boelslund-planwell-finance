@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { Navigation } from './Navigation'
-import { AuthProvider } from '../../contexts/AuthContext'
-import { onAuthStateChanged, type User } from 'firebase/auth'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { axe, toHaveNoViolations } from 'jest-axe'
+import { Navigation } from './Navigation'
+import { onAuthStateChanged, type User } from 'firebase/auth'
+import { mockUser, setupAuthMock, renderWithMemoryRouter } from '../../test/test-utils'
+
+expect.extend(toHaveNoViolations)
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -26,25 +28,9 @@ vi.mock('firebase/auth', async () => {
   }
 })
 
-const mockUser: Partial<User> = {
-  uid: 'test-user-123',
-  email: 'test@example.com',
-  displayName: 'Test User',
-}
-
 const renderNavigation = (user: Partial<User> | null = null, initialRoute = '/') => {
-  vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
-    (callback as (user: User | null) => void)(user as User | null)
-    return vi.fn()
-  })
-
-  return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
-      <AuthProvider>
-        <Navigation />
-      </AuthProvider>
-    </MemoryRouter>
-  )
+  setupAuthMock(user, onAuthStateChanged)
+  return renderWithMemoryRouter(<Navigation />, initialRoute)
 }
 
 describe('Navigation Component', () => {
@@ -236,5 +222,169 @@ describe('Navigation Component', () => {
       expect(menuButton).toHaveAttribute('aria-expanded')
       expect(menuButton).toHaveAttribute('aria-label')
     })
+  })
+})
+
+describe('Navigation - Extended Accessibility', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('WCAG Compliance', () => {
+    it('should have no accessibility violations when unauthenticated', async () => {
+      const { container } = renderNavigation(null)
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+
+    it('should have no accessibility violations when authenticated', async () => {
+      const { container } = renderNavigation(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument()
+      })
+
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+
+    it('should have no accessibility violations with mobile menu open', async () => {
+      const user = userEvent.setup()
+      const { container } = renderNavigation(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Toggle navigation menu')).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByLabelText('Toggle navigation menu')
+      await user.click(menuButton)
+
+      const results = await axe(container)
+      expect(results).toHaveNoViolations()
+    })
+  })
+
+  describe('Semantic HTML', () => {
+    it('should use semantic nav element', () => {
+      const { container } = renderNavigation(null)
+      const nav = container.querySelector('nav')
+      expect(nav).toBeInTheDocument()
+      expect(nav).toHaveClass('navigation')
+    })
+
+    it('should use semantic list for navigation items', () => {
+      const { container } = renderNavigation(null)
+      const list = container.querySelector('nav ul')
+      expect(list).toBeInTheDocument()
+    })
+  })
+
+  describe('Keyboard Navigation', () => {
+    it('should allow tabbing through navigation links', async () => {
+      const user = userEvent.setup()
+      renderNavigation(null)
+
+      const homeLink = screen.getByRole('link', { name: /home/i })
+      const signInLink = screen.getByRole('link', { name: /sign in/i })
+      const signUpLink = screen.getByRole('link', { name: /sign up/i })
+
+      await user.tab()
+      expect(homeLink).toHaveFocus()
+
+      await user.tab()
+      expect(signInLink).toHaveFocus()
+
+      await user.tab()
+      expect(signUpLink).toHaveFocus()
+    })
+
+    it('should allow keyboard navigation of mobile menu', async () => {
+      const user = userEvent.setup()
+      renderNavigation(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Toggle navigation menu')).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByLabelText('Toggle navigation menu')
+      menuButton.focus()
+      expect(menuButton).toHaveFocus()
+
+      await user.keyboard('{Enter}')
+      expect(menuButton).toHaveAttribute('aria-expanded', 'true')
+    })
+  })
+
+  describe('ARIA Attributes', () => {
+    it('should have aria-label on navigation', () => {
+      renderNavigation(null)
+      const nav = screen.getByRole('navigation')
+      expect(nav).toHaveAttribute('aria-label')
+    })
+
+    it('should have aria-expanded on mobile menu button', async () => {
+      renderNavigation(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Toggle navigation menu')).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByLabelText('Toggle navigation menu')
+      expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('should update aria-expanded when menu is toggled', async () => {
+      const user = userEvent.setup()
+      renderNavigation(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Toggle navigation menu')).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByLabelText('Toggle navigation menu')
+      expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+
+      await user.click(menuButton)
+      expect(menuButton).toHaveAttribute('aria-expanded', 'true')
+
+      await user.click(menuButton)
+      expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+    })
+  })
+
+  describe('Focus Management', () => {
+    it('should maintain focus within navigation', async () => {
+      renderNavigation(null)
+      const nav = screen.getByRole('navigation')
+      expect(nav).toBeInTheDocument()
+      expect(document.activeElement).toBeTruthy()
+    })
+  })
+
+  describe('Screen Reader Support', () => {
+    it('should have descriptive link text', () => {
+      renderNavigation(null)
+
+      const homeLink = screen.getByRole('link', { name: /home/i })
+      const signInLink = screen.getByRole('link', { name: /sign in/i })
+      const signUpLink = screen.getByRole('link', { name: /sign up/i })
+
+      expect(homeLink).toHaveAccessibleName()
+      expect(signInLink).toHaveAccessibleName()
+      expect(signUpLink).toHaveAccessibleName()
+    })
+
+    it('should have descriptive button text for mobile menu', async () => {
+      renderNavigation(mockUser)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Toggle navigation menu')).toBeInTheDocument()
+      })
+
+      const menuButton = screen.getByLabelText('Toggle navigation menu')
+      expect(menuButton).toHaveAttribute('aria-label', 'Toggle navigation menu')
+    })
+
+    // Note: Sign out button is in the Header component, not Navigation
   })
 })
