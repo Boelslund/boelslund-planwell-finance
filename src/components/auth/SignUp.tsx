@@ -2,6 +2,9 @@ import { FormEvent, useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserProfile } from "../../services/userProfile";
+import { FormInput } from "../common/FormInput";
+import { ErrorMessage } from "../common/ErrorMessage";
+import { mapFirebaseAuthError } from "../../utils/firebaseErrors";
 
 export function SignUp() {
   const [displayName, setDisplayName] = useState("");
@@ -20,6 +23,44 @@ export function SignUp() {
       navigate("/");
     }
   }, [user, navigate]);
+
+  /**
+   * Handles user sign up with profile creation and rollback on failure
+   */
+  const handleSignUpWithProfile = async () => {
+    const userCredential = await signUp(email, password);
+    const newUser = userCredential.user;
+
+    try {
+      await createUserProfile(newUser.uid, newUser.email || email, displayName.trim());
+    } catch (profileError) {
+      // Profile creation failed - attempt cleanup
+      await handleProfileCreationFailure(newUser, profileError);
+    }
+  };
+
+  /**
+   * Handles profile creation failure with appropriate rollback
+   */
+  const handleProfileCreationFailure = async (newUser: { delete: () => Promise<void> }, profileError: unknown) => {
+    try {
+      // Try to delete the user account
+      await newUser.delete();
+    } catch (deleteError) {
+      // If delete fails, sign out to prevent authenticated state without profile
+      console.error("Failed to rollback user creation:", deleteError);
+      try {
+        await signOut();
+      } catch (signOutError) {
+        console.error("Failed to sign out after rollback failure:", signOutError);
+      }
+      // Set error and throw to prevent navigation - use original error code for proper mapping
+      const error = { code: "rollback-failed", message: "Account created but profile setup failed. Please contact support." };
+      throw error;
+    }
+    // Re-throw the original error to be handled by the outer catch
+    throw profileError;
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -62,49 +103,11 @@ export function SignUp() {
     // Attempt sign up
     setLoading(true);
     try {
-      const userCredential = await signUp(email, password);
-      const newUser = userCredential.user;
-
-      // Create user profile in Firestore
-      // If this fails, rollback by deleting the user account to avoid inconsistent state
-      try {
-        await createUserProfile(newUser.uid, newUser.email || email, displayName.trim());
-      } catch (profileError) {
-        // Profile creation failed - attempt rollback
-        try {
-          await newUser.delete();
-        } catch (deleteError) {
-          // Rollback failed - sign out to prevent authenticated state without profile
-          console.error("Failed to rollback user creation:", deleteError);
-          try {
-            await signOut();
-          } catch (signOutError) {
-            console.error("Failed to sign out after rollback failure:", signOutError);
-          }
-          setAuthError("Account created but profile setup failed. Please contact support.");
-          return;
-        }
-        // Re-throw the profile error to be handled by outer catch
-        throw profileError;
-      }
-
+      await handleSignUpWithProfile();
       // Navigate to home page
       navigate("/");
     } catch (error: unknown) {
-      // Handle Firebase auth errors
-      const errorCode = (error as { code?: string })?.code || "";
-
-      if (errorCode === "auth/email-already-in-use") {
-        setAuthError("Email already in use");
-      } else if (errorCode === "auth/weak-password") {
-        setAuthError("Weak password. Please use a stronger password.");
-      } else if (errorCode === "auth/invalid-email") {
-        setAuthError("Invalid email address");
-      } else if (errorCode === "permission-denied") {
-        setAuthError("Database configuration error. Please contact support.");
-      } else {
-        setAuthError("Failed to create an account. Please try again.");
-      }
+      setAuthError(mapFirebaseAuthError(error));
     } finally {
       setLoading(false);
     }
@@ -118,59 +121,47 @@ export function SignUp() {
         aria-busy={loading}
         noValidate
       >
-        <label htmlFor="displayName">Name</label>
-        <input
+        <FormInput
           id="displayName"
+          label="Name"
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
+          error={errors.displayName}
           autoComplete="name"
-          required
-          aria-required="true"
-          aria-describedby={errors.displayName ? "displayName-error" : undefined}
         />
-        {errors.displayName && <div id="displayName-error" style={{ color: 'red' }}>{errors.displayName}</div>}
 
-        <label htmlFor="email">Email</label>
-        <input
+        <FormInput
           id="email"
+          label="Email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={errors.email}
           autoComplete="email"
-          required
-          aria-required="true"
-          aria-describedby={errors.email ? "email-error" : undefined}
         />
-        {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
 
-        <label htmlFor="password">Password</label>
-        <input
+        <FormInput
           id="password"
+          label="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          error={errors.password}
           autoComplete="new-password"
-          required
-          aria-required="true"
-          aria-describedby={errors.password ? "password-error" : undefined}
         />
-        {errors.password && <div id="password-error" style={{ color: 'red' }}>{errors.password}</div>}
 
-        <label htmlFor="confirmPassword">Confirm Password</label>
-        <input
+        <FormInput
           id="confirmPassword"
+          label="Confirm Password"
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          error={errors.confirmPassword}
           autoComplete="new-password"
-          required
-          aria-required="true"
-          aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
         />
-        {errors.confirmPassword && <div id="confirmPassword-error" style={{ color: 'red' }}>{errors.confirmPassword}</div>}
 
-        {authError && <div id="authError" style={{ color: 'red' }}>{authError}</div>}
+        {authError && <ErrorMessage id="authError">{authError}</ErrorMessage>}
 
         <button type="submit" disabled={loading}>
           {loading ? "Signing Up..." : "Sign Up"}

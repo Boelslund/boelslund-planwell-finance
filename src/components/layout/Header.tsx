@@ -1,13 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { getAuthInstance } from '../../firebase';
-import { signOut } from 'firebase/auth';
 import { useAuth } from "../../contexts/AuthContext";
 import { Navigation } from "./Navigation";
 import { useMenu } from "../../hooks/useMenu";
 import './Header.css';
 
 export function Header() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const {
     isOpen: isUserMenuOpen,
@@ -22,16 +20,14 @@ export function Header() {
     try {
       // Navigate first, then sign out to avoid ProtectedRoute redirect
       navigate('/');
-      await signOut(getAuthInstance());
+      await signOut();
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
 
   const getInitial = () => {
-    return user?.displayName?.charAt(0).toUpperCase() ||
-      user?.email?.charAt(0).toUpperCase() ||
-      '?';
+    return user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?';
   };
 
   return (

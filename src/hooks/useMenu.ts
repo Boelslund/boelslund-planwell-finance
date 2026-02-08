@@ -24,6 +24,8 @@ export function useMenu(initialState = false) {
       }
     };
 
+    // Use setTimeout to defer adding the listener until after the current event
+    // This prevents the click that opened the menu from immediately closing it
     const timeoutId = setTimeout(() => {
       document.addEventListener('click', handleClickOutside);
     }, 0);

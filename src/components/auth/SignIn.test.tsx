@@ -19,6 +19,8 @@ import { type ReactNode } from 'react';
 
 expect.extend(toHaveNoViolations);
 
+// TODO: DRY violation - Mock setup (useAuth, react-router-dom) is duplicated across all auth test files
+// Extract to a shared test utility like setupAuthMocks() or createAuthTestWrapper()
 // Mock the useAuth hook
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
@@ -40,6 +42,8 @@ vi.mock('react-router-dom', async () => {
 describe('SignIn Component', () => {
   const mockSignIn = vi.fn();
 
+  // TODO: DRY violation - This beforeEach pattern is duplicated in all auth test files
+  // Consider creating a shared setupAuthContext helper
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue({

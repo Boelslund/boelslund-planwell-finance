@@ -1,6 +1,9 @@
 import { FormEvent, useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { FormInput } from "../common/FormInput";
+import { ErrorMessage } from "../common/ErrorMessage";
+import { mapFirebaseAuthError } from "../../utils/firebaseErrors";
 
 export function PasswordReset() {
   const [email, setEmail] = useState("");
@@ -49,7 +52,7 @@ export function PasswordReset() {
       } else if (errorCode === "auth/invalid-email") {
         setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
       } else if (errorCode === "auth/too-many-requests") {
-        setErrors((prev) => ({ ...prev, generic: "Too many requests. Please try again later." }));
+        setErrors((prev) => ({ ...prev, generic: mapFirebaseAuthError(error) }));
       } else {
         setErrors((prev) => ({ ...prev, generic: "Password reset failed. Please try again." }));
       }
@@ -79,11 +82,10 @@ export function PasswordReset() {
         aria-busy={loading}
         noValidate
       >
-        {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
-        {errors.generic && <div id="generic-error" style={{ color: 'red' }}>{errors.generic}</div>}
-        <label htmlFor="email">Email</label>
-        <input
+        {errors.generic && <ErrorMessage id="generic-error">{errors.generic}</ErrorMessage>}
+        <FormInput
           id="email"
+          label="Email"
           type="email"
           value={email}
           onChange={(e) => {
@@ -91,12 +93,9 @@ export function PasswordReset() {
             setMailSent(false);
             setErrors({ email: "", generic: "" });
           }}
+          error={errors.email}
           autoComplete="email"
           autoFocus
-          aria-describedby={errors.email ? "email-error" : errors.generic ? "generic-error" : undefined}
-          aria-invalid={errors.email ? true : undefined}
-          aria-required="true"
-          required
         />
         <button
           type="submit"

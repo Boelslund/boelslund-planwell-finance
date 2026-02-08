@@ -14,6 +14,28 @@ let dbInstance: Firestore | null = null;
 let analyticsInstance: Analytics | null = null;
 
 /**
+ * Generic lazy instance getter factory
+ * @param instance - Reference to the cached instance variable
+ * @param initializer - Function to initialize the instance
+ * @returns The cached or newly initialized instance
+ */
+function createInstanceGetter<T>(
+  getInstance: () => T | null,
+  setInstance: (instance: T) => void,
+  initializer: () => T
+): () => T {
+  return () => {
+    const current = getInstance();
+    if (!current) {
+      const newInstance = initializer();
+      setInstance(newInstance);
+      return newInstance;
+    }
+    return current;
+  };
+}
+
+/**
  * Checks if the current environment is suitable for Firebase initialization
  * @returns true if Firebase can be initialized, false otherwise
  */
@@ -55,23 +77,21 @@ export function getApp(): FirebaseApp {
  * Lazily initializes and returns the Firebase Auth instance
  * @returns Firebase Auth instance
  */
-export function getAuthInstance(): Auth {
-  if (!authInstance) {
-    authInstance = getAuth(getApp());
-  }
-  return authInstance;
-}
+export const getAuthInstance = createInstanceGetter(
+  () => authInstance,
+  (instance) => { authInstance = instance; },
+  () => getAuth(getApp())
+);
 
 /**
  * Lazily initializes and returns the Firestore instance
  * @returns Firestore instance
  */
-export function getDbInstance(): Firestore {
-  if (!dbInstance) {
-    dbInstance = getFirestore(getApp());
-  }
-  return dbInstance;
-}
+export const getDbInstance = createInstanceGetter(
+  () => dbInstance,
+  (instance) => { dbInstance = instance; },
+  () => getFirestore(getApp())
+);
 
 /**
  * Lazily initializes and returns the Analytics instance (production only)

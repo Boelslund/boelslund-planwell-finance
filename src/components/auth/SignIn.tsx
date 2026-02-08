@@ -1,6 +1,9 @@
 import { FormEvent, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { FormInput } from "../common/FormInput";
+import { ErrorMessage } from "../common/ErrorMessage";
+import { mapFirebaseAuthError } from "../../utils/firebaseErrors";
 
 export function SignIn() {
   const [email, setEmail] = useState("");
@@ -47,17 +50,7 @@ export function SignIn() {
       // Navigate to home
       navigate("/");
     } catch (error: unknown) {
-      // Handle Firebase auth errors
-      const errorCode = (error as { code?: string })?.code || "";
-      if (errorCode === "auth/wrong-password") {
-        setAuthError("Incorrect password");
-      } else if (errorCode === "auth/user-not-found") {
-        setAuthError("No account found with this email");
-      } else if (errorCode === "auth/invalid-credential") {
-        setAuthError("Invalid credentials. Please check your email and password.");
-      } else {
-        setAuthError("An error occurred. Please try again.");
-      }
+      setAuthError(mapFirebaseAuthError(error));
     } finally {
       setLoading(false);
     }
@@ -71,33 +64,27 @@ export function SignIn() {
         aria-busy={loading}
         noValidate
       >
-        <label htmlFor="email">Email</label>
-        <input
+        <FormInput
           id="email"
+          label="Email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={errors.email}
           autoComplete="email"
-          required
-          aria-required="true"
-          aria-describedby={errors.email ? "email-error" : undefined}
         />
-        {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
 
-        <label htmlFor="password">Password</label>
-        <input
+        <FormInput
           id="password"
+          label="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          error={errors.password}
           autoComplete="current-password"
-          required
-          aria-required="true"
-          aria-describedby={errors.password ? "password-error" : undefined}
         />
-        {errors.password && <div id="password-error" style={{ color: 'red' }}>{errors.password}</div>}
 
-        {authError && <div style={{ color: 'red' }}>{authError}</div>}
+        {authError && <ErrorMessage>{authError}</ErrorMessage>}
 
         <button type="submit" disabled={loading}>
           {loading ? "Signing In..." : "Sign In"}

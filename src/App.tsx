@@ -12,16 +12,12 @@ import { Home } from './pages/Home'
 import { Dashboard } from './pages/Dashboard'
 import { PasswordReset } from './components/auth/PasswordReset'
 
-function LayoutWrapper() {
-  return <Layout><Outlet /></Layout>
-}
-
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route element={<LayoutWrapper />}>
+          <Route element={<Layout><Outlet /></Layout>}>
             <Route path="/" element={<Home />} />
             <Route path="/password-reset" element={<PasswordReset />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
