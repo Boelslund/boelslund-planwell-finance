@@ -3,6 +3,15 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserProfile } from "../../services/userProfile";
 
+// TODO: DRY violation - Error styling (style={{ color: 'red' }}) is repeated across all forms
+// Create a reusable ErrorMessage component or use CSS classes
+// TODO: DRY violation - Form validation pattern is duplicated in SignIn, SignUp, and PasswordReset
+// Extract validation logic to a shared hook or utility function
+// TODO: KISS violation - Rollback logic in handleSubmit is overly complex and hard to follow
+// Consider simplifying error handling or extracting to a separate function
+// TODO: DRY violation - Firebase error code mapping is duplicated across auth components
+// Extract to a shared utility function like mapFirebaseAuthError(errorCode)
+
 export function SignUp() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -15,6 +24,8 @@ export function SignUp() {
   const { user, signUp, signOut } = useAuth();
   const navigate = useNavigate();
 
+  // TODO: DRY violation - This redirect pattern is duplicated in SignIn and SignUp
+  // Consider creating a custom hook like useAuthRedirect()
   useEffect(() => {
     if (user) {
       navigate("/");
@@ -28,6 +39,8 @@ export function SignUp() {
     setErrors({ displayName: "", email: "", password: "", confirmPassword: "" });
     setAuthError("");
 
+    // TODO: DRY violation - This validation pattern is repeated in all auth forms
+    // Extract to a reusable validateForm function or custom hook
     // Validate
     let hasErrors = false;
     if (!displayName.trim()) {
@@ -65,6 +78,10 @@ export function SignUp() {
       const userCredential = await signUp(email, password);
       const newUser = userCredential.user;
 
+      // TODO: KISS violation - This rollback logic is overly complex and hard to follow
+      // Consider: 1) Move to a separate handleSignUpWithProfile function
+      //           2) Use a transaction-like pattern
+      //           3) Simplify error recovery with clear, linear logic
       // Create user profile in Firestore
       // If this fails, rollback by deleting the user account to avoid inconsistent state
       try {
@@ -91,6 +108,8 @@ export function SignUp() {
       // Navigate to home page
       navigate("/");
     } catch (error: unknown) {
+      // TODO: DRY violation - Firebase error code mapping duplicated across auth components
+      // Extract to shared utility: mapFirebaseAuthError(error) => userFriendlyMessage
       // Handle Firebase auth errors
       const errorCode = (error as { code?: string })?.code || "";
 
@@ -113,6 +132,8 @@ export function SignUp() {
   return (
     <div>
       <h1>Sign Up</h1>
+      {/* TODO: DRY violation - Form input pattern (label + input + error display) is repeated
+          across all forms and fields. Consider creating a FormField or FormInput component */}
       <form
         onSubmit={handleSubmit}
         aria-busy={loading}

@@ -1,6 +1,9 @@
 import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 
+// TODO: KISS violation - useMenu has overly complex click-outside handling with setTimeout
+// The setTimeout(0) workaround suggests a design issue. Consider using a more straightforward approach
+// or documenting why the timeout is necessary
 export function useMenu(initialState = false) {
   const [isOpen, setIsOpen] = useState(initialState);
   const menuRef = useRef<HTMLDivElement>(null);

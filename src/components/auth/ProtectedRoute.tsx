@@ -7,6 +7,8 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
+// TODO: KISS violation - ProtectedRoute uses inline "Loading..." text instead of the Loading component
+// Should use <Loading message="Verifying access..." /> for consistency
 export function ProtectedRoute({ children, redirectTo = "/" }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 

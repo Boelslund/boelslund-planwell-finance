@@ -1,3 +1,5 @@
+// TODO: DRY violation - All legal components (Privacy, Terms, Support) follow same structure
+// Consider creating a LegalPage wrapper component with consistent styling and layout
 export function Support() {
   return (
     <div>

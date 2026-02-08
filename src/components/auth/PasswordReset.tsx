@@ -2,6 +2,13 @@ import { FormEvent, useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
+// TODO: DRY violation - Error styling (style={{ color: 'red' }}) is repeated across all forms
+// Create a reusable ErrorMessage component or use CSS classes
+// TODO: DRY violation - Form validation pattern is duplicated in SignIn, SignUp, and PasswordReset
+// Extract validation logic to a shared hook or utility function
+// TODO: DRY violation - Firebase error code mapping is duplicated across auth components
+// Extract to a shared utility function like mapFirebaseAuthError(errorCode)
+
 export function PasswordReset() {
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({ email: "", generic: "" });
@@ -23,6 +30,8 @@ export function PasswordReset() {
 
     setErrors({ email: "", generic: "" });
 
+    // TODO: DRY violation - This validation pattern is repeated in all auth forms
+    // Extract to a reusable validateForm function or custom hook
     // Validate
     let hasErrors = false;
     if (!email) {
@@ -40,6 +49,8 @@ export function PasswordReset() {
       setMailSent(true);
       setEmail("");
     } catch (error: unknown) {
+      // TODO: DRY violation - Firebase error code mapping duplicated across auth components
+      // Extract to shared utility: mapFirebaseAuthError(error) => userFriendlyMessage
       const errorCode = (error as { code?: string })?.code || "";
       if (errorCode === "auth/user-not-found") {
         // Avoid account enumeration: treat as success and show the same UI
@@ -74,6 +85,8 @@ export function PasswordReset() {
           <p style={{ fontSize: '0.9em' }}>If you don't see the email, please check your spam folder.</p>
         </div>
       )}
+      {/* TODO: DRY violation - Form input pattern (label + input + error display) is repeated
+          across all forms and fields. Consider creating a FormField or FormInput component */}
       <form
         onSubmit={handleSubmit}
         aria-busy={loading}

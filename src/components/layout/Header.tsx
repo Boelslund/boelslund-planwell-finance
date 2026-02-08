@@ -6,6 +6,10 @@ import { Navigation } from "./Navigation";
 import { useMenu } from "../../hooks/useMenu";
 import './Header.css';
 
+// TODO: DRY violation - signOut logic is duplicated between Header and AuthContext
+// Should use signOut from useAuth() context instead of calling firebase directly
+// This violates separation of concerns
+
 export function Header() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -17,6 +21,8 @@ export function Header() {
     handleKeyDown
   } = useMenu();
 
+  // TODO: KISS violation - This logOut function has mixed concerns (navigation + auth)
+  // Should use signOut from context and let a global auth listener handle navigation
   const logOut = async () => {
     closeUserMenu();
     try {
@@ -28,6 +34,8 @@ export function Header() {
     }
   };
 
+  // TODO: KISS violation - getInitial could be simpler
+  // Consider: user?.displayName?.[0] || user?.email?.[0] || '?'
   const getInitial = () => {
     return user?.displayName?.charAt(0).toUpperCase() ||
       user?.email?.charAt(0).toUpperCase() ||

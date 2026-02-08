@@ -13,6 +13,9 @@ let authInstance: Auth | null = null;
 let dbInstance: Firestore | null = null;
 let analyticsInstance: Analytics | null = null;
 
+// TODO: DRY violation - All getInstance functions follow identical lazy initialization pattern
+// Consider creating a generic createInstanceGetter<T>(initializer: () => T) factory function
+
 /**
  * Checks if the current environment is suitable for Firebase initialization
  * @returns true if Firebase can be initialized, false otherwise
@@ -55,6 +58,7 @@ export function getApp(): FirebaseApp {
  * Lazily initializes and returns the Firebase Auth instance
  * @returns Firebase Auth instance
  */
+// TODO: DRY - This pattern is repeated in getAuthInstance, getDbInstance, getAnalyticsInstance
 export function getAuthInstance(): Auth {
   if (!authInstance) {
     authInstance = getAuth(getApp());
