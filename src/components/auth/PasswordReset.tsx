@@ -77,6 +77,7 @@ export function PasswordReset() {
       <form
         onSubmit={handleSubmit}
         aria-busy={loading}
+        noValidate
       >
         {errors.email && <div id="email-error" style={{ color: 'red' }}>{errors.email}</div>}
         {errors.generic && <div id="generic-error" style={{ color: 'red' }}>{errors.generic}</div>}
