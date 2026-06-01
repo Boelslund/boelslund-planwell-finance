@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export function ProtectedRoute({ children, redirectTo = "/" }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, redirectTo = "/signin" }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
   if (loading) {

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Navigation } from "./Navigation";
 import { useMenu } from "../../hooks/useMenu";
@@ -75,6 +75,16 @@ export function Header() {
                   onClick={logOut}
                 >
                   Sign Out
+                </button>
+                <button
+                  className="header-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    closeUserMenu();
+                    navigate('/profile');
+                  }}
+                >
+                  Profile
                 </button>
               </div>
             )}
