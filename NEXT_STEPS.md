@@ -852,7 +852,7 @@ All features have been implemented with full test coverage (35 unit tests + 16 i
 
 - [ ] Currency selection
 - [x] Date format preferences
-- [ ] Theme implementation (light/dark mode)
+- [ ] Theme styling (wire light/dark preference to actual visual styling)
 
 ### 9.4 Enhanced Authentication UX
 
