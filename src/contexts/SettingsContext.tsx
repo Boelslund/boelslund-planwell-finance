@@ -38,29 +38,31 @@ export function clearSettingsCache() {
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(false);
+  // Initialize loading to true since we always start with auth loading
+  const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     // Don't attempt to load settings until auth is ready
     if (authLoading) {
-      setLoading(true);
+      // Loading is already true from initialization
       return;
     }
 
-    // Clear settings and cache when user logs out
-    if (!user) {
-      setSettings(null);
-      setError('');
-      setLoading(false);
-      // Clear cache for all users on logout
-      settingsCache.clear();
-      return;
-    }
+    // Handle settings loading asynchronously to avoid synchronous setState in effect
+    const handleSettingsLoad = async () => {
+      // Clear settings and cache when user logs out
+      if (!user) {
+        setSettings(null);
+        setError('');
+        setLoading(false);
+        // Clear cache for all users on logout
+        settingsCache.clear();
+        return;
+      }
 
-    // Load settings for authenticated user
-    const loadSettings = async () => {
+      // Load settings for authenticated user
       try {
         setLoading(true);
         setError('');
@@ -97,7 +99,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    loadSettings();
+    handleSettingsLoad();
   }, [user, authLoading]);
 
   // Apply theme class to body

@@ -35,15 +35,22 @@ export function UserSettings() {
     monthlySummaryInput !== settings.notifications.monthlySummary
   ) : false;
 
-  // Update form state when settings load
+  // Use a ref to track if settings have been initialized
+  const settingsInitializedRef = useRef(false);
+
+  // Update form state when settings load - only once to avoid cascading renders
   useEffect(() => {
-    if (settings) {
-      setDateFormatInput(settings.dateFormat);
-      setThemeInput(settings.theme);
-      setLanguageInput(settings.language);
-      setEmailNotificationsInput(settings.notifications.email);
-      setBudgetAlertsInput(settings.notifications.budgetAlerts);
-      setMonthlySummaryInput(settings.notifications.monthlySummary);
+    if (settings && !settingsInitializedRef.current) {
+      settingsInitializedRef.current = true;
+      // Queue state updates to avoid synchronous setState in effect
+      Promise.resolve().then(() => {
+        setDateFormatInput(settings.dateFormat);
+        setThemeInput(settings.theme);
+        setLanguageInput(settings.language);
+        setEmailNotificationsInput(settings.notifications.email);
+        setBudgetAlertsInput(settings.notifications.budgetAlerts);
+        setMonthlySummaryInput(settings.notifications.monthlySummary);
+      });
     }
   }, [settings]);
 
