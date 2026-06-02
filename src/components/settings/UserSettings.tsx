@@ -1,4 +1,5 @@
 import { FormEvent, useState, useEffect, useRef } from "react";
+import { useBlocker } from "react-router-dom";
 import { dateFormatOptions, themeOptions, languageOptions, DEFAULT_USER_SETTINGS, type UserSettings as UserSettingsType } from "../../services/userSettings";
 import { ErrorMessage } from "../common/ErrorMessage";
 import { FormInput } from "../common/FormInput";
@@ -43,6 +44,14 @@ export function UserSettings() {
 
   // Use a ref to track if settings have been initialized
   const settingsInitializedRef = useRef(false);
+
+  // Block navigation when there are unsaved changes (for in-app routing)
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasUnsavedChanges &&
+      !justSavedRef.current &&
+      currentLocation.pathname !== nextLocation.pathname
+  );
 
   // Update form state when settings load - only once to avoid cascading renders
   useEffect(() => {
@@ -108,10 +117,10 @@ export function UserSettings() {
 
       await updateSettings(updates);
       setSaveSuccess(true);
-      
+
       // Mark that we just saved successfully to prevent unnecessary warning
       justSavedRef.current = true;
-      
+
       // Update local form state to match what we just saved
       // This ensures hasUnsavedChanges becomes false
       setDateFormatInput(updates.dateFormat!);
@@ -120,7 +129,7 @@ export function UserSettings() {
       setEmailNotificationsInput(updates.notifications!.email);
       setBudgetAlertsInput(updates.notifications!.budgetAlerts);
       setMonthlySummaryInput(updates.notifications!.monthlySummary);
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
@@ -159,10 +168,10 @@ export function UserSettings() {
 
       setSaveSuccess(true);
       setShowResetConfirm(false);
-      
+
       // Mark that we just saved successfully
       justSavedRef.current = true;
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
@@ -179,8 +188,62 @@ export function UserSettings() {
 
   return (
     <div>
+      {/* Navigation blocker dialog for in-app navigation */}
+      {blocker.state === "blocked" && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="unsaved-changes-title"
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--bg-primary, white)',
+              padding: '2rem',
+              borderRadius: '8px',
+              maxWidth: '400px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <h2 id="unsaved-changes-title" style={{ marginTop: 0 }}>
+              Unsaved Changes
+            </h2>
+            <p>
+              You have unsaved changes. Are you sure you want to leave this page?
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => blocker.reset()}
+                style={{ padding: '0.5rem 1rem' }}
+              >
+                Stay
+              </button>
+              <button
+                type="button"
+                onClick={() => blocker.proceed()}
+                style={{ padding: '0.5rem 1rem' }}
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {!user && <p>Please sign in to manage your settings.</p>}
-      
+
       {error && !updateError && (
         <div>
           <ErrorMessage id="error">{error}</ErrorMessage>
@@ -277,8 +340,8 @@ export function UserSettings() {
               {isSaving ? "Saving..." : "Update Settings"}
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={handleReset}
               disabled={loading || isSaving}
               style={{ marginLeft: '1rem' }}
@@ -288,8 +351,8 @@ export function UserSettings() {
 
             {showResetConfirm && (
               <>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowResetConfirm(false)}
                   style={{ marginLeft: '0.5rem' }}
                 >

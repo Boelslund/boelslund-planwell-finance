@@ -8,6 +8,8 @@ import { useSettings } from '../../contexts/SettingsContext';
 import type { User } from 'firebase/auth';
 import type { UserSettings as UserSettingsType } from '../../services/userSettings';
 import { serverTimestamp, Timestamp } from 'firebase/firestore';
+import type { Location, Blocker } from 'react-router-dom';
+import { useBlocker } from 'react-router-dom';
 
 // Mock contexts
 vi.mock('../../contexts/AuthContext', () => ({
@@ -17,6 +19,49 @@ vi.mock('../../contexts/AuthContext', () => ({
 vi.mock('../../contexts/SettingsContext', () => ({
   useSettings: vi.fn(),
 }));
+
+// Mock react-router-dom
+vi.mock('react-router-dom', () => ({
+  useBlocker: vi.fn(),
+}));
+
+// Mock react-router-dom
+const mockLocation: Location = {
+  pathname: '/profile',
+  search: '',
+  hash: '',
+  state: null,
+  key: 'default',
+};
+
+const createMockBlocker = (
+  state: 'unblocked' | 'blocked' | 'proceeding'
+): Blocker => {
+  if (state === 'blocked') {
+    return {
+      state: 'blocked',
+      location: mockLocation,
+      reset: vi.fn(),
+      proceed: vi.fn(),
+    } as Blocker;
+  }
+
+  if (state === 'proceeding') {
+    return {
+      state: 'proceeding',
+      location: mockLocation,
+      reset: undefined,
+      proceed: undefined,
+    } as Blocker;
+  }
+
+  return {
+    state: 'unblocked',
+    location: undefined,
+    reset: undefined,
+    proceed: undefined,
+  } as Blocker;
+};
 
 describe('UserSettings Component', () => {
   const mockUser: Partial<User> = {
@@ -43,6 +88,10 @@ describe('UserSettings Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Reset blocker to default state
+    vi.mocked(useBlocker).mockReturnValue(createMockBlocker('unblocked'));
+
     vi.mocked(useAuth).mockReturnValue({
       user: mockUser as User,
       signOut: vi.fn(),
@@ -394,82 +443,247 @@ describe('UserSettings Component', () => {
   });
 
   describe('Unsaved Changes Warning', () => {
-    it('should warn user when leaving page with unsaved changes', async () => {
-      const user = userEvent.setup();
-      render(<UserSettings />);
-
-      // Make a change without submitting
-      const themeSelect = screen.getByLabelText(/theme/i);
-      await user.selectOptions(themeSelect, 'dark');
-
-      // Attempt to navigate away should trigger warning
-      // Note: In real implementation, this would use beforeunload event or React Router blocker
-      const beforeUnloadEvent = new Event('beforeunload');
-      const preventDefaultSpy = vi.fn();
-      beforeUnloadEvent.preventDefault = preventDefaultSpy;
-
-      window.dispatchEvent(beforeUnloadEvent);
-
-      // Should have attempted to prevent default (show browser warning)
-      expect(preventDefaultSpy).toHaveBeenCalled();
+    beforeEach(() => {
+      // Reset blocker mock before each test
+      vi.mocked(useBlocker).mockReturnValue(createMockBlocker('unblocked'));
     });
 
-    it('should not warn when leaving page without changes', async () => {
-      render(<UserSettings />);
+    describe('Browser unload event (closing/refreshing)', () => {
+      it('should warn user when leaving page with unsaved changes', async () => {
+        const user = userEvent.setup();
+        render(<UserSettings />);
 
-      // No changes made, navigate away should not trigger warning
-      const beforeUnloadEvent = new Event('beforeunload');
-      const preventDefaultSpy = vi.fn();
-      beforeUnloadEvent.preventDefault = preventDefaultSpy;
+        // Make a change without submitting
+        const themeSelect = screen.getByLabelText(/theme/i);
+        await user.selectOptions(themeSelect, 'dark');
 
-      window.dispatchEvent(beforeUnloadEvent);
+        // Create beforeunload event with proper returnValue property
+        const beforeUnloadEvent = new Event('beforeunload') as BeforeUnloadEvent;
+        Object.defineProperty(beforeUnloadEvent, 'returnValue', {
+          writable: true,
+          value: '',
+        });
 
-      // Should NOT prevent default (no warning)
-      expect(preventDefaultSpy).not.toHaveBeenCalled();
-    });
+        const preventDefaultSpy = vi.spyOn(beforeUnloadEvent, 'preventDefault');
+        window.dispatchEvent(beforeUnloadEvent);
 
-    it('should not warn after successfully submitting changes', async () => {
-      const user = userEvent.setup();
-      mockUpdateSettings.mockResolvedValue(undefined);
-      render(<UserSettings />);
-
-      // Make a change
-      const themeSelect = screen.getByLabelText(/theme/i);
-      await user.selectOptions(themeSelect, 'dark');
-
-      // Submit the form
-      const submitButton = screen.getByRole('button', { name: /update settings/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockUpdateSettings).toHaveBeenCalled();
+        // Should have prevented default and set returnValue (triggers browser warning)
+        expect(preventDefaultSpy).toHaveBeenCalled();
+        expect(beforeUnloadEvent.returnValue).toBe('');
       });
 
-      // After successful submit, navigate away should not trigger warning
-      const beforeUnloadEvent = new Event('beforeunload');
-      const preventDefaultSpy = vi.fn();
-      beforeUnloadEvent.preventDefault = preventDefaultSpy;
+      it('should not warn when leaving page without changes', async () => {
+        render(<UserSettings />);
 
-      window.dispatchEvent(beforeUnloadEvent);
+        // No changes made, navigate away should not trigger warning
+        const beforeUnloadEvent = new Event('beforeunload') as BeforeUnloadEvent;
+        Object.defineProperty(beforeUnloadEvent, 'returnValue', {
+          writable: true,
+          value: '',
+        });
 
-      // Should NOT prevent default (no warning after save)
-      expect(preventDefaultSpy).not.toHaveBeenCalled();
+        const preventDefaultSpy = vi.spyOn(beforeUnloadEvent, 'preventDefault');
+        window.dispatchEvent(beforeUnloadEvent);
+
+        // Should NOT prevent default (no warning)
+        expect(preventDefaultSpy).not.toHaveBeenCalled();
+      });
+
+      it('should not warn after successfully submitting changes', async () => {
+        const user = userEvent.setup();
+        mockUpdateSettings.mockResolvedValue(undefined);
+        render(<UserSettings />);
+
+        // Make a change
+        const themeSelect = screen.getByLabelText(/theme/i);
+        await user.selectOptions(themeSelect, 'dark');
+
+        // Submit the form
+        const submitButton = screen.getByRole('button', { name: /update settings/i });
+        await user.click(submitButton);
+
+        await waitFor(() => {
+          expect(mockUpdateSettings).toHaveBeenCalled();
+        });
+
+        // After successful submit, navigate away should not trigger warning
+        const beforeUnloadEvent = new Event('beforeunload') as BeforeUnloadEvent;
+        Object.defineProperty(beforeUnloadEvent, 'returnValue', {
+          writable: true,
+          value: '',
+        });
+
+        const preventDefaultSpy = vi.spyOn(beforeUnloadEvent, 'preventDefault');
+        window.dispatchEvent(beforeUnloadEvent);
+
+        // Should NOT prevent default (no warning after save)
+        expect(preventDefaultSpy).not.toHaveBeenCalled();
+      });
     });
 
-    it('should show custom confirmation dialog when attempting to navigate with unsaved changes', async () => {
-      const user = userEvent.setup();
-      render(<UserSettings />);
+    describe('In-app navigation (React Router)', () => {
+      it('should block navigation when there are unsaved changes', async () => {
+        const user = userEvent.setup();
+        const { useBlocker } = await import('react-router-dom');
 
-      // Make a change
-      const themeSelect = screen.getByLabelText(/theme/i);
-      await user.selectOptions(themeSelect, 'dark');
+        // Configure mock to simulate blocking behavior
+        let shouldBlock = false;
+        vi.mocked(useBlocker).mockImplementation((blocker) => {
+          if (typeof blocker === 'function') {
+            const currentLoc: Location = { ...mockLocation, pathname: '/profile' };
+            const nextLoc: Location = { ...mockLocation, pathname: '/dashboard' };
+            shouldBlock = blocker({
+              currentLocation: currentLoc,
+              nextLocation: nextLoc,
+              historyAction: 'PUSH' as unknown as never,
+            });
+          }
+          return shouldBlock
+            ? createMockBlocker('blocked')
+            : createMockBlocker('unblocked');
+        });
 
-      // For React Router navigation, expect a custom confirmation dialog
-      // This would be shown via a component like useBlocker in React Router v6
-      // The exact implementation depends on the routing solution
+        const { rerender } = render(<UserSettings />);
 
-      // This test verifies the message is appropriate
-      expect(true).toBe(true); // Placeholder - actual implementation will depend on routing
+        // Make a change without submitting
+        const themeSelect = screen.getByLabelText(/theme/i);
+        await user.selectOptions(themeSelect, 'dark');
+
+        // Rerender to trigger useBlocker with unsaved changes
+        rerender(<UserSettings />);
+
+        // Should block navigation
+        expect(shouldBlock).toBe(true);
+      });
+
+      it('should not block navigation when there are no unsaved changes', async () => {
+        const { useBlocker } = await import('react-router-dom');
+
+        let shouldBlock = false;
+        vi.mocked(useBlocker).mockImplementation((blocker) => {
+          if (typeof blocker === 'function') {
+            const currentLoc: Location = { ...mockLocation, pathname: '/profile' };
+            const nextLoc: Location = { ...mockLocation, pathname: '/dashboard' };
+            shouldBlock = blocker({
+              currentLocation: currentLoc,
+              nextLocation: nextLoc,
+              historyAction: 'PUSH' as unknown as never,
+            });
+          }
+          return createMockBlocker('unblocked');
+        });
+
+        render(<UserSettings />);
+
+        // No changes made
+        expect(shouldBlock).toBe(false);
+      });
+
+      it('should show modal dialog when navigation is blocked', async () => {
+        const user = userEvent.setup();
+
+        // Mock useBlocker to return blocked state
+        const blockedBlocker = createMockBlocker('blocked');
+        vi.mocked(useBlocker).mockReturnValue(blockedBlocker);
+
+        render(<UserSettings />);
+
+        // Make a change to trigger unsaved state
+        const themeSelect = screen.getByLabelText(/theme/i);
+        await user.selectOptions(themeSelect, 'dark');
+
+        // Should display the modal dialog
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toBeInTheDocument();
+        expect(dialog).toHaveTextContent(/unsaved changes/i);
+        expect(dialog).toHaveTextContent(/are you sure you want to leave/i);
+      });
+
+      it('should allow user to stay on page when clicking "Stay" button', async () => {
+        const user = userEvent.setup();
+
+        // Mock useBlocker to return blocked state with spy functions
+        const resetMock = vi.fn();
+        const proceedMock = vi.fn();
+        const blockedBlocker = {
+          state: 'blocked' as const,
+          location: mockLocation,
+          reset: resetMock,
+          proceed: proceedMock,
+        };
+        vi.mocked(useBlocker).mockReturnValue(blockedBlocker);
+
+        render(<UserSettings />);
+
+        const stayButton = screen.getByRole('button', { name: /stay/i });
+        await user.click(stayButton);
+
+        expect(resetMock).toHaveBeenCalled();
+      });
+
+      it('should allow user to leave page when clicking "Leave" button', async () => {
+        const user = userEvent.setup();
+
+        // Mock useBlocker to return blocked state with spy functions
+        const resetMock = vi.fn();
+        const proceedMock = vi.fn();
+        const blockedBlocker = {
+          state: 'blocked' as const,
+          location: mockLocation,
+          reset: resetMock,
+          proceed: proceedMock,
+        };
+        vi.mocked(useBlocker).mockReturnValue(blockedBlocker);
+
+        render(<UserSettings />);
+
+        const leaveButton = screen.getByRole('button', { name: /leave/i });
+        await user.click(leaveButton);
+
+        expect(proceedMock).toHaveBeenCalled();
+      });
+
+      it('should not block navigation after successfully saving changes', async () => {
+        const user = userEvent.setup();
+        const { useBlocker } = await import('react-router-dom');
+
+        let shouldBlock = false;
+        vi.mocked(useBlocker).mockImplementation((blocker) => {
+          if (typeof blocker === 'function') {
+            const currentLoc: Location = { ...mockLocation, pathname: '/profile' };
+            const nextLoc: Location = { ...mockLocation, pathname: '/dashboard' };
+            shouldBlock = blocker({
+              currentLocation: currentLoc,
+              nextLocation: nextLoc,
+              historyAction: 'PUSH' as unknown as never,
+            });
+          }
+          return createMockBlocker('unblocked');
+        });
+
+        mockUpdateSettings.mockResolvedValue(undefined);
+        const { rerender } = render(<UserSettings />);
+
+        // Make a change
+        const themeSelect = screen.getByLabelText(/theme/i);
+        await user.selectOptions(themeSelect, 'dark');
+
+        // Rerender to check blocking status
+        rerender(<UserSettings />);
+        expect(shouldBlock).toBe(true);
+
+        // Submit the form
+        const submitButton = screen.getByRole('button', { name: /update settings/i });
+        await user.click(submitButton);
+
+        await waitFor(() => {
+          expect(mockUpdateSettings).toHaveBeenCalled();
+        });
+
+        // Rerender after save to check blocking status
+        rerender(<UserSettings />);
+        expect(shouldBlock).toBe(false);
+      });
     });
   });
 

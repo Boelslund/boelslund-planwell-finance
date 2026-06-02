@@ -45,6 +45,20 @@ vi.mock('firebase/auth', () => ({
   sendPasswordResetEmail: vi.fn(),
 }));
 
+// Mock react-router-dom's useBlocker to avoid data router requirement
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>();
+  return {
+    ...actual,
+    useBlocker: vi.fn(() => ({
+      state: 'unblocked',
+      reset: undefined,
+      proceed: undefined,
+      location: undefined,
+    })),
+  };
+});
+
 describe('User Settings Integration Tests', () => {
   const mockUser: Partial<User> = {
     uid: 'test-user-123',
