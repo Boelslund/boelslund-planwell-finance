@@ -112,22 +112,26 @@ All features have been implemented with full test coverage (35 unit tests + 16 i
   - [x] Proper state synchronization after reset
 
 **Integration Tests:**
+
 - [x] AuthContext + SettingsContext integration (4 tests)
 - [x] Theme integration with document.body (3 tests)
 - [x] Service layer integration (6 tests)
 - [x] Context caching and persistence (2 tests)
 
 **Additional Test Suites:**
+
 - [x] SettingsContext tests (27 tests)
 - [x] userSettings service tests (10 tests - simplified behavior tests)
 
 **Database Structure:**
+
 - [x] Future-proofed Firestore structure
 - [x] Split into users/{userId}/data/settings and users/{userId}/data/notifications
 - [x] Updated Firestore security rules for /data/ subcollection
 - [x] Backwards-compatible service layer functions
 
 **Total: 87 tests, all passing** ✅
+
 - UserSettings component: 35 tests
 - UserSettingsIntegration: 15 tests
 - SettingsContext: 27 tests
@@ -849,7 +853,7 @@ All features have been implemented with full test coverage (35 unit tests + 16 i
 
 - [ ] Currency selection
 - [x] Date format preferences
-- [x] Theme (light/dark mode)
+- [ ] Theme implementation (light/dark mode)
 
 ### 9.4 Enhanced Authentication UX
 
