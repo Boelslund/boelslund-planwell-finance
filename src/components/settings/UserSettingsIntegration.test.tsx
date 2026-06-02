@@ -168,7 +168,7 @@ describe('User Settings Integration Tests', () => {
       authCallback!(null);
 
       await waitFor(() => {
-        expect(screen.getByText('Welcome to PlanWell Finance!')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
       });
 
       expect(document.body.className).toBe('');
