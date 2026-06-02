@@ -77,7 +77,7 @@ When you find a problem, document:
 
 1. While logged in, look for a user menu in the top-right corner of the page
 2. Click on your email or the user icon
-3. Select "Settings" from the dropdown menu
+3. Select "Profile" from the dropdown menu
 4. The settings page should load
 
 **Expected Results:**
@@ -434,7 +434,7 @@ When you find a problem, document:
 **Steps:**
 
 1. Make sure you are logged OUT
-2. Manually type this URL in your browser: `https://boelslund-planwell-finance-dev.web.app/settings`
+2. Manually type this URL in your browser: `https://boelslund-planwell-finance-dev.web.app/profile`
 3. Press Enter
 
 **Expected Results:**

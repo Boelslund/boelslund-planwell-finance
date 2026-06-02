@@ -128,7 +128,19 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
       // Use functional update to handle concurrent updates correctly
       setSettings((prev) => {
-        updatedSettings = prev ? { ...prev, ...newSettings } : null;
+        if (!prev) {
+          updatedSettings = null;
+          return null;
+        }
+
+        updatedSettings = {
+          ...prev,
+          ...newSettings,
+          notifications: newSettings.notifications
+            ? { ...prev.notifications, ...newSettings.notifications }
+            : prev.notifications,
+        };
+
         return updatedSettings;
       });
 

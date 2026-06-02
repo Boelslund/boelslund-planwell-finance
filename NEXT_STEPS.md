@@ -52,8 +52,7 @@ Use the [pre-production application](https://boelslund-planwell-finance-dev.web.
 - [x] Integrate profile creation into registration flow
 - [-] Create default budget on first login (moved to Phase 2)
 - [x] User settings/preferences structure
-  - [x] SettingsContext with caching and real-time sync
-  - [x] userSettings service with Firestore operations
+  - [x] SettingsContext with caching
   - [x] UserSettings component with form submission pattern
   - [x] Date format preferences (MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD)
   - [x] Theme selection (light/dark with auto-apply)

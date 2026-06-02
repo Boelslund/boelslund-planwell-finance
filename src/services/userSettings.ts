@@ -110,12 +110,19 @@ export async function createDefaultSettings(userId: string): Promise<void> {
   if (!userId) {
     throw new Error('User ID is required');
   }
+
+  const settingsDoc = doc(getDbInstance(), 'users', userId, 'data', 'settings');
+  const existing = await getDoc(settingsDoc);
+  if (existing.exists()) {
+    return;
+  }
+
   const defaultSettings: Settings = {
     ...DEFAULT_SETTINGS,
     createdAt: serverTimestamp() as Timestamp,
     updatedAt: serverTimestamp() as Timestamp,
   };
-  const settingsDoc = doc(getDbInstance(), 'users', userId, 'data', 'settings');
+
   await setDoc(settingsDoc, defaultSettings);
 }
 
@@ -130,7 +137,8 @@ export async function getSettings(userId: string): Promise<Settings | null> {
       return docSnap.data() as Settings;
     }
   } catch (error) {
-    throw new Error(`Failed to get settings: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to get settings: ${message}`);
   }
   return null;
 }
@@ -160,7 +168,8 @@ export async function updateSettings(
     };
     await setDoc(settingsDoc, updatedSettings);
   } catch (error) {
-    throw new Error(`Failed to update settings: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to update settings: ${message}`);
   }
 }
 
@@ -172,12 +181,19 @@ export async function createDefaultNotifications(userId: string): Promise<void> 
   if (!userId) {
     throw new Error('User ID is required');
   }
+
+  const notificationsDoc = doc(getDbInstance(), 'users', userId, 'data', 'notifications');
+  const existing = await getDoc(notificationsDoc);
+  if (existing.exists()) {
+    return;
+  }
+
   const defaultNotifications: NotificationSettings = {
     ...DEFAULT_NOTIFICATIONS,
     createdAt: serverTimestamp() as Timestamp,
     updatedAt: serverTimestamp() as Timestamp,
   };
-  const notificationsDoc = doc(getDbInstance(), 'users', userId, 'data', 'notifications');
+
   await setDoc(notificationsDoc, defaultNotifications);
 }
 
@@ -192,7 +208,8 @@ export async function getNotifications(userId: string): Promise<NotificationSett
       return docSnap.data() as NotificationSettings;
     }
   } catch (error) {
-    throw new Error(`Failed to get notifications: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to get notifications: ${message}`);
   }
   return null;
 }
@@ -222,7 +239,8 @@ export async function updateNotifications(
     };
     await setDoc(notificationsDoc, updatedNotifications);
   } catch (error) {
-    throw new Error(`Failed to update notifications: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to update notifications: ${message}`);
   }
 }
 

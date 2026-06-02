@@ -10,12 +10,18 @@ export function UserSettings() {
   const { user } = useAuth();
   const { settings, loading, error, updateSettings, refreshSettings } = useSettings();
 
-  const [dateFormatInput, setDateFormatInput] = useState(settings?.dateFormat || DEFAULT_USER_SETTINGS.dateFormat);
-  const [themeInput, setThemeInput] = useState(settings?.theme || DEFAULT_USER_SETTINGS.theme);
-  const [languageInput, setLanguageInput] = useState(settings?.language || DEFAULT_USER_SETTINGS.language);
-  const [emailNotificationsInput, setEmailNotificationsInput] = useState(settings?.notifications.email || DEFAULT_USER_SETTINGS.notifications.email);
-  const [budgetAlertsInput, setBudgetAlertsInput] = useState(settings?.notifications.budgetAlerts || DEFAULT_USER_SETTINGS.notifications.budgetAlerts);
-  const [monthlySummaryInput, setMonthlySummaryInput] = useState(settings?.notifications.monthlySummary || DEFAULT_USER_SETTINGS.notifications.monthlySummary);
+  const [dateFormatInput, setDateFormatInput] = useState(settings?.dateFormat ?? DEFAULT_USER_SETTINGS.dateFormat);
+  const [themeInput, setThemeInput] = useState(settings?.theme ?? DEFAULT_USER_SETTINGS.theme);
+  const [languageInput, setLanguageInput] = useState(settings?.language ?? DEFAULT_USER_SETTINGS.language);
+  const [emailNotificationsInput, setEmailNotificationsInput] = useState(
+    settings?.notifications?.email ?? DEFAULT_USER_SETTINGS.notifications.email,
+  );
+  const [budgetAlertsInput, setBudgetAlertsInput] = useState(
+    settings?.notifications?.budgetAlerts ?? DEFAULT_USER_SETTINGS.notifications.budgetAlerts,
+  );
+  const [monthlySummaryInput, setMonthlySummaryInput] = useState(
+    settings?.notifications?.monthlySummary ?? DEFAULT_USER_SETTINGS.notifications.monthlySummary,
+  );
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
