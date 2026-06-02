@@ -120,7 +120,7 @@ describe('User Settings Integration Tests', () => {
   });
 
   describe('AuthContext + SettingsContext Integration', () => {
-    it('should redirect to home page when not authenticated', () => {
+    it('should redirect to sign-in when not authenticated', () => {
       vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
         (callback as (user: User | null) => void)(null);
         return vi.fn();
@@ -128,8 +128,8 @@ describe('User Settings Integration Tests', () => {
 
       renderUserSettings();
 
-      // Should redirect to home page via ProtectedRoute
-      expect(screen.getByText('Welcome to PlanWell Finance!')).toBeInTheDocument();
+      // Should redirect to sign-in page via ProtectedRoute
+      expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
       expect(screen.queryByLabelText(/date format/i)).not.toBeInTheDocument();
     });
 
