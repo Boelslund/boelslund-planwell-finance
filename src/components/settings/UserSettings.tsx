@@ -90,6 +90,14 @@ export function UserSettings() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // Auto-clear success message after 3 seconds with cleanup
+  useEffect(() => {
+    if (saveSuccess) {
+      const timeoutId = setTimeout(() => setSaveSuccess(false), 3000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [saveSuccess]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -129,9 +137,6 @@ export function UserSettings() {
       setEmailNotificationsInput(updates.notifications!.email);
       setBudgetAlertsInput(updates.notifications!.budgetAlerts);
       setMonthlySummaryInput(updates.notifications!.monthlySummary);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       const errorDetails = err instanceof Error ? err.message : 'Unknown error';
       setUpdateError(`Failed to update settings: ${errorDetails}`);
@@ -171,9 +176,6 @@ export function UserSettings() {
 
       // Mark that we just saved successfully
       justSavedRef.current = true;
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       const errorDetails = err instanceof Error ? err.message : 'Unknown error';
       setUpdateError(`Failed to reset settings: ${errorDetails}`);
