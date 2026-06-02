@@ -35,7 +35,15 @@ describe('User Settings Service', () => {
 
   describe('createDefaultUserSettings', () => {
     it('should create default user settings', async () => {
-      const { setDoc } = await import('firebase/firestore');
+      const { doc, getDoc, setDoc } = await import('firebase/firestore');
+
+      // Mock document references
+      vi.mocked(doc).mockReturnValue({} as DocumentReference);
+      
+      // Mock getDoc to return non-existing documents (so defaults will be created)
+      vi.mocked(getDoc).mockResolvedValue({
+        exists: () => false,
+      } as unknown as DocumentSnapshot);
 
       await createDefaultUserSettings(mockUserId);
 
