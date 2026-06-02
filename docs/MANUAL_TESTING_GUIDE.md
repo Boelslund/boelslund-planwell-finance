@@ -103,15 +103,14 @@ When you find a problem, document:
    - Change "Date Format" to "DD/MM/YYYY" (or any option different from default)
    - Check the "Email Notifications" checkbox
    - Check the "Budget Alerts" checkbox
-2. Click the "Save Settings" button
-3. Watch for a success message and observe the page
+2. Click the "Update Settings" button
+3. Watch for a success message
 
 **Expected Results:**
 - ✅ Button shows "Saving..." briefly
-- ✅ A success message appears (e.g., "Settings saved successfully")
+- ✅ A success message appears (e.g., "Settings updated successfully")
 - ✅ Success message disappears automatically after ~3 seconds
-- ✅ After clicking Save, the page background changes to a dark color
-- ✅ Text changes to light colors (readable on dark background)
+- ✅ After refreshing the page, the selected values persist
 - ✅ No error messages appear
 
 **Record:**
