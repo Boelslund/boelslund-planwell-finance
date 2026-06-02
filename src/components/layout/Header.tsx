@@ -76,6 +76,16 @@ export function Header() {
                 >
                   Sign Out
                 </button>
+                <button
+                  className="header-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    closeUserMenu();
+                    navigate('/profile');
+                  }}
+                >
+                  Profile
+                </button>
               </div>
             )}
           </div>

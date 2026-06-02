@@ -28,6 +28,12 @@ Start here if you're new to the project:
   - Testing patterns and best practices
   - Mocking Firebase services
 
+- **[Manual Testing Guide](./MANUAL_TESTING_GUIDE.md)** - Step-by-step guide for manual QA testing
+  - Detailed test procedures for inexperienced testers
+  - Happy path, error handling, and security testing
+  - Cross-browser and responsive design testing
+  - Issue documentation templates
+
 - **[Versioning Guide](./VERSIONING.md)** - Automated semantic versioning
   - PR label requirements
   - Version bump workflow
