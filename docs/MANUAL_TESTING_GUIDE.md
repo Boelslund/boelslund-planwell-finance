@@ -146,13 +146,13 @@ When you find a problem, document:
 
 1. On the Settings page, change the Language dropdown to a different value
 2. **Do NOT click Save**
-3. Try to navigate away by clicking on "Home" in the navigation menu
+3. Try to refresh the page (F5) or close the tab/window
 
 **Expected Results:**
-- ✅ Browser shows a warning dialog: "You have unsaved changes. Are you sure you want to leave?"
+- ✅ Browser shows a warning dialog about unsaved changes
 - ✅ Dialog has two options: "Leave" and "Stay" (or similar)
 - ✅ If you click "Stay", you remain on the Settings page
-- ✅ If you click "Leave", you navigate away and changes are lost
+- ✅ If you click "Leave", the page reloads/closes and changes are lost
 
 **Record:**
 - [ ] Test Passed
