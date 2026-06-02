@@ -91,7 +91,7 @@ describe('User Settings Integration Tests', () => {
               <Route
                 path="/profile"
                 element={
-                  <ProtectedRoute redirectTo="/">
+                  <ProtectedRoute>
                     <UserSettings />
                   </ProtectedRoute>
                 }
